@@ -9,6 +9,7 @@ import '../features/transactions/transaction_detail.dart';
 import '../features/ledger/management_screen.dart';
 import '../features/statistics/statistics_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/help/usage_guide_screen.dart';
 import '../features/google_connection/google_connection_screen.dart';
 import '../features/transactions/transaction_repository.dart';
 
@@ -54,6 +55,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => Consumer(
                 builder: (context, ref, _) => ManagementScreen(
                     key: ObjectKey(ref.watch(transactionRepositoryProvider))))),
+        GoRoute(
+            path: '/help',
+            builder: (context, state) => const UsageGuideScreen()),
         GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen()),
@@ -135,7 +139,8 @@ class AppShell extends ConsumerWidget {
               ]),
             ))),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: path == '/google-connection'
+          selectedIndex: const ['/google-connection', '/help', '/management']
+                  .contains(path)
               ? 3
               : paths.indexOf(path).clamp(0, 3),
           onDestinationSelected: (index) => context.go(paths[index]),

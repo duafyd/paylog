@@ -17,6 +17,11 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         const Text('가볍게 시작하는 함께의 기록', style: TextStyle(color: AppColors.muted)),
         const SizedBox(height: 24),
+        FilledButton.icon(
+            onPressed: () => context.go('/help'),
+            icon: const Icon(Icons.help_outline),
+            label: const Text('Android · iPhone 사용 가이드')),
+        const SizedBox(height: 16),
         const LedgerStatus(),
         if (ref.watch(transactionRepositoryProvider).sheetId == null)
           const BentoCard(

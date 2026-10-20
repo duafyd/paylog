@@ -3,7 +3,7 @@ set -euo pipefail
 # Linux x86_64 cloud setup, isolated from system directories. Downloads are pinned.
 python3 - <<'PY'
 import pathlib,urllib.request,hashlib,zipfile,tarfile,os
-base=pathlib.Path('/workspace/tools');base.mkdir(parents=True,exist_ok=True)
+base=pathlib.Path(os.environ.get('PAYLOG_TOOLS_DIR','/workspace/tools'));base.mkdir(parents=True,exist_ok=True)
 cache=base/'android-downloads';cache.mkdir(exist_ok=True)
 sdk=base/'android-sdk';sdk.mkdir(exist_ok=True)
 def fetch(name,url,sha):

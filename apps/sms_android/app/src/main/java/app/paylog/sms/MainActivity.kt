@@ -18,6 +18,16 @@ class MainActivity : Activity() {
             layout.addView(edit); return edit
         }
         label("paylog 문자 수집\n허용 발신자의 새 SMS만 수집합니다. 기존 문자는 읽지 않습니다.")
+        layout.addView(Button(this).apply { text = "사용 방법 보기"; setOnClickListener {
+            android.app.AlertDialog.Builder(this@MainActivity).setTitle("Android 문자 수집 사용 방법").setMessage(
+                "1. 먼저 소유자가 GAS 수집 서버와 카드·기기 등록을 준비합니다.\n\n" +
+                "2. GAS /exec 주소, 기기 UUID, 원본 토큰, 실제 허용 발신번호를 입력합니다. 토큰은 채팅이나 스크린샷으로 공유하지 마세요.\n\n" +
+                "3. 문자 수집 사용을 켜고 설정을 저장한 뒤 SMS 수신 권한을 허용합니다. 이후 수신한 허용 발신자의 SMS만 처리하며 기존 문자는 읽지 않습니다.\n\n" +
+                "4. 전송 상태와 웹 가계부의 달력·검토함을 확인합니다. 전송이 밀리면 네트워크·배터리 제한을 확인하고 대기 전송 재시도를 누릅니다. 즉시 전송은 보장되지 않습니다.\n\n" +
+                "5. 앱 삭제 시 설정과 대기 문자가 사라집니다. 기기 분실 시 웹 관리에서 기기를 비활성화하세요.\n\n" +
+                "iPhone과 홈 화면 설치 안내는 paylog 웹앱 → 설정 → Android · iPhone 사용 가이드에서 볼 수 있습니다. 실제 SMS 수신은 아직 실기기 검증 전입니다."
+            ).setPositiveButton("확인", null).show()
+        } })
         val endpoint = field("GAS /exec HTTPS 주소","endpoint")
         val device = field("기기 UUID","deviceId")
         val token = field("기기 전송 토큰","token",true)

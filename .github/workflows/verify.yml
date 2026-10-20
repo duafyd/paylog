@@ -61,8 +61,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - run: gradle -p apps/sms_android testDebugUnitTest lintDebug assembleDebug --no-daemon --max-workers=4
+      - run: gradle -p apps/sms_android testDebugUnitTest testReleaseUnitTest lintDebug lintRelease assembleDebug assembleRelease --no-daemon --max-workers=4
       - uses: actions/upload-artifact@v4
         with:
           name: paylog-sms-debug
           path: apps/sms_android/app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paylog-sms-release-unsigned
+          path: apps/sms_android/app/build/outputs/apk/release/*-unsigned.apk

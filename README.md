@@ -87,3 +87,15 @@ apps/web/lib/
 ```
 
 Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fonts/OFL.txt`에 있습니다. 샘플 모드에는 API 키·인증 토큰이 필요하지 않습니다. Google 연결 PoC에는 공개 웹 OAuth 클라이언트 ID를 빌드 설정으로 전달합니다. 앞으로도 OAuth 토큰이나 기기 수집 비밀키를 웹 번들·Git에 포함하지 않습니다.
+
+## 앱 내 사용 가이드와 정식 APK
+
+웹앱 **설정 → Android · iPhone 사용 가이드**에서 홈 화면 설치, Google/가계부 연결, Android 문자 수집 앱 설치·설정, iPhone 단축어 구성과 문제 해결 방법을 볼 수 있습니다. Android 보조 앱에도 **사용 방법 보기**가 있습니다.
+
+이미 Firebase에 로그인한 본인 Cloud Shell의 저장소 루트에서 아래 명령으로 최신 웹 가이드와 정식 서명 APK를 각각 배포합니다.
+
+```sh
+git pull --ff-only && bash scripts/deploy-cloud-shell.sh && python3 scripts/release-android.py
+```
+
+최초 APK 릴리스에는 본인이 정하는 서명키 전용 새 암호(12자 이상)가 필요합니다. 암호화된 키 파일과 암호를 안전하게 백업하고 채팅·Git에 올리지 마세요. 정식 APK 다운로드 사이트는 스크립트 성공 후 이용할 수 있습니다. [상세 배포 절차](docs/deployment.md), [검증 결과와 미검증 항목](docs/validation.md)을 확인하세요.

@@ -20,3 +20,8 @@
 # Deployment CLI output may contain private authentication details
 firebase-debug*.log
 **/__pycache__/
+
+# Android production signing material never belongs in Git
+*.p12
+*.pfx
+*.keypass

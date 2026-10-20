@@ -74,3 +74,27 @@ fi
 ```
 
 `--resume`은 성공한 기존 빌드의 필수 파일·OAuth ID·빌드 이후 웹 소스 변경 여부를 확인하고 다운로드/재빌드를 생략한다. 소스가 바뀌었거나 빌드가 없으면 일반 실행으로 다시 빌드해야 한다. 인증과 프로젝트 접근은 이제 SDK 설치·빌드보다 먼저 확인한다. 인증/권한/API 비활성 오류는 민감한 원문을 출력하지 않고 원인별 안내를 제공한다. 여전히 프로젝트 접근이 안 되면 같은 계정에서 `npx --yes firebase-tools@14.22.0 projects:list`를 직접 실행해 오류 안내를 확인한다. 코드는 Cloud Shell에만 입력하고 채팅에는 보내지 않는다.
+
+## Android 릴리스 APK 배포 (본인 Cloud Shell)
+
+릴리스는 `app.paylog.sms`, versionName `1.0.0`, versionCode `2`다. 이후 디버그 빌드는 `.debug` 패키지와 개발용 앱 이름을 사용한다. CI에는 실배포 키를 넣지 않으며, CI의 unsigned 릴리스 APK는 설치·배포용으로 사용하지 않는다.
+
+이미 웹 배포에 성공한 **동일한 Cloud Shell의 paylog 폴더**에서 다음을 실행한다. 현재 계정의 Firebase 프로젝트 접근을 먼저 확인한다.
+
+```sh
+git pull --ff-only && python3 scripts/release-android.py
+```
+
+처음 실행할 때 **앱 서명키 전용 새 암호**를 두 번 입력한다(영문·숫자·기호 12자 이상). Google 로그인 코드나 Google 계정 비밀번호를 입력하는 단계가 아니다. 개인 암호 관리자에 암호를 보관하고 채팅에 보내지 않는다. 키는 본인의 Cloud Shell 홈 `~/.local/share/paylog-signing/paylog-release.p12`에 생성하고 다음 빌드에도 재사용한다. 키와 암호 파일이 일부만 남아 있으면 새 키로 덮어쓰지 않고 중단한다.
+
+Cloud Shell에 처음 키를 생성하면 `cloudshell download`로 **본인 암호로 암호화된 PKCS12 키 파일**의 개인 백업 다운로드를 요청한다. 이 파일과 암호를 안전하게 보관해야 다음 버전을 같은 앱으로 업데이트할 수 있다. 서명키·암호는 Git, 공개 Hosting, Actions artifact에 업로드하지 않는다. Cloud Shell 저장소만을 영구 백업으로 간주하지 않는다. 암호 파일은 키와 함께 Cloud Shell의 개인 디렉터리에만 두며 권한은 600이다.
+
+스크립트는 고정 JDK/Android SDK/Gradle 설치, 릴리스 단위 테스트·Lint·APK 빌드, APK 서명과 보관 키의 공개 인증서 일치, 패키지·버전·debuggable=false를 확인한다. 같은 Firebase 프로젝트의 다운로드 전용 Hosting 사이트에 APK와 다운로드 페이지를 배포한다. 웹 가계부의 사이트·데이터는 변경하지 않는다. 업로드된 APK를 HTTPS로 다시 받아 SHA-256도 확인한다.
+
+- 다운로드 페이지: `https://paylog-c5c2d-android.web.app/`
+- 설치 파일: `https://paylog-c5c2d-android.web.app/paylog-sms.apk`
+- 공개 무결성 정보: `/android-release.json`, `/paylog-sms.apk.sha256`
+
+위 주소는 **릴리스 스크립트가 실제로 성공한 뒤** 사용할 수 있다. 릴리스 서명이 실제 SMS 수신·백그라운드 동작 검증을 대신하지 않는다. GAS·기기 등록이 필요하고 실기기 검증은 이번 요청에서 제외돼 있다. 기존 0.1.0 개발용 APK가 설치돼 있으면 서명이 달라 교체 설치가 필요할 수 있다. 개발용 앱 삭제 전 설정과 대기 문자를 확인한다. 삭제 시 해당 앱의 개인 저장소는 사라진다.
+
+다른 Firebase 프로젝트는 FIREBASE_PROJECT_ID / GOOGLE_WEB_CLIENT_ID, 다른 SDK 위치는 PAYLOG_TOOLS_DIR, 다운로드 사이트 ID는 PAYLOG_ANDROID_SITE_ID로 지정한다. `--build-only`는 공개 배포 없이 서명 APK까지만 만든다. Play 스토어 등록·심사·SMS 권한 승인은 이 직접 APK 배포에 포함하지 않는다.
