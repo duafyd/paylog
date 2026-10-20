@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="함께 쓰고, 가볍게 모으는 가족 가계부">
+  <meta name="theme-color" content="#207A75">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="paylog">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>paylog · 우리 집의 작은 기록</title>
+  <style>
+    body { margin: 0; background: #f7f8fa; }
+    #loading { position: fixed; inset: 0; display: grid; place-content: center;
+      color: #207a75; font: 600 18px system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">paylog · 가계부를 준비하고 있어요</div>
+  <noscript>paylog를 사용하려면 JavaScript를 활성화해 주세요.</noscript>
+  <script>
+    window.addEventListener('flutter-first-frame', () => document.getElementById('loading')?.remove());
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
