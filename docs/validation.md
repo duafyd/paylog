@@ -1,3 +1,11 @@
+# 배포 진행 결과 (2026-10-20 UTC)
+
+사용자의 실제 배포 요청에 따라 Firebase CLI 로그인 상태를 확인했다. 저장된 계정은 0개이고 현재 프로세스의 FIREBASE_PROJECT_ID, GOOGLE_WEB_CLIENT_ID, FIREBASE_TOKEN은 설정되지 않았다. GitHub 저장소 Actions 변수/비밀값 목록은 현재 연동 권한으로 HTTP 403 거부되어 설정값을 가져오지 못했다. 플랫폼 GOOGLE_APPLICATION_CREDENTIALS는 사용자 계정 대신 사용하지 않았다.
+
+배포 스크립트 `scripts/deploy-hosting.py` 및 사전 확인 테스트 **5개 통과**. `--deploy` 실행은 공개 설정 두 개 누락을 확인한 단계에서 종료 코드 1로 중단됐다. Hosting API 배포 요청·새 프로젝트 생성·외부 데이터 변경은 수행되지 않았다. 실제 배포 성공으로 간주하지 않는다. 필요한 설정과 안전한 인증 입력 방법은 [배포 안내](deployment.md)에 기록했다.
+
+---
+
 # 최신 검증 결과 (2026-10-20 UTC)
 
 `feat/complete-budget-workflows`의 현재 구현 기준이다. 아래 이전 단계 기록은 당시 결과이며 현재 기능 목록은 이 절과 README를 우선한다.

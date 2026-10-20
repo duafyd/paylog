@@ -4,6 +4,7 @@
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)
+- 배포 사전 확인: `python3 scripts/deploy-hosting.py` · 실제 배포: `python3 scripts/deploy-hosting.py --deploy` ([필수 계정/설정](docs/deployment.md))
 - [SMS/GAS 운영 설정](docs/sms-setup.md) · [Android 앱](apps/sms_android/README.md) · [iOS 단축어](ios/README.md) · [배포/CI](docs/deployment.md)
 - [아키텍처](docs/architecture.md) · [검증 결과](docs/validation.md)
 

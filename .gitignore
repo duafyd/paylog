@@ -16,3 +16,7 @@
 **/.kotlin/
 *.jks
 *.keystore
+
+# Deployment CLI output may contain private authentication details
+firebase-debug*.log
+**/__pycache__/

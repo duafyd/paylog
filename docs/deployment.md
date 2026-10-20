@@ -20,3 +20,22 @@ Hosting SPA rewrite, HTTPS 보안 헤더, JS 재검증과 HTML no-store를 설�
 Google OAuth의 승인된 JavaScript 원본에 실제 Hosting 도메인을 등록하고 API 활성화·동의 화면·테스트 사용자/공개 정책을 확인한다. OAuth 검증이나 Workspace 정책상 사용이 차단되면 본인 테스트 사용자로 제한하거나 대체 백엔드를 검토한다.
 
 `.github/workflows/verify.yml`은 Flutter 정적 분석·위젯/단위 테스트·웹 빌드, SMS 파서 테스트·GAS 생성물 일치, Android JVM 테스트·Lint·debug APK 빌드를 실행하고 산출물을 보관한다. 자동 배포는 설정하지 않았다. workflow는 PR 제출만으로 성공한 것으로 간주하지 않으며 GitHub 실행 결과를 확인한다. Android APK는 개발용 서명이며 앱스토어 배포물이 아니다.
+
+## 배포 사전 확인과 실행
+
+`scripts/deploy-hosting.py`는 배포 대상과 인증을 먼저 확인한다. 기본 실행은 조회만 하며, `--deploy`를 붙이면 승인된 배포 요청에 따라 실제 Hosting 배포를 수행한다. 실제 OAuth ID가 없는 샘플 빌드는 배포하지 않는다. 플랫폼의 `GOOGLE_APPLICATION_CREDENTIALS`는 자식 프로세스에서 제거하며 사용자 Firebase CLI 로그인 또는 명시적인 Firebase 토큰만 사용한다. 대상 프로젝트가 사용자 계정 목록에서 확인되어야 빌드·배포를 진행한다.
+
+```sh
+# 공개 설정값은 본인 Google/Firebase 콘솔에서 확인
+export FIREBASE_PROJECT_ID=본인프로젝트ID
+export GOOGLE_WEB_CLIENT_ID=본인의공개웹클라이언트ID
+# 본인 계정의 firebase login을 완료한 개발 머신에서 실행
+python3 scripts/deploy-hosting.py
+python3 scripts/deploy-hosting.py --deploy
+```
+
+이 클라우드에는 현재 두 공개 ID와 Firebase 로그인 계정이 없다. 클라우드에서 계속 진행하려면 환경 설정의 공개 변수 두 개와 사용자 본인의 Firebase 인증을 연결해야 한다. CLI 로그인을 쓸 수 없으면 신뢰하는 로컬 머신에서 `firebase login:ci`로 얻은 값을 **환경 설정의 FIREBASE_TOKEN 비밀값**에만 등록한다. 채팅·커밋·명령 인자에 토큰을 넣지 않는다. 이 방식은 고정한 Firebase CLI 14.22.0에서 지원되지만 폐기 예정 방식이므로 장기 자동 배포는 사용자 소유 서비스 계정의 Workload Identity Federation을 권장한다. 이 작업에서 사용자를 대신해 서비스 계정이나 유료 프로젝트를 만들지 않았다.
+
+GAS는 별도 소유자 계정의 Apps Script 프로젝트와 가계부 시트가 필요하다. 아직 실제 스크립트 ID·배포 URL이 없으며 [SMS 운영 설정](sms-setup.md)의 순서대로 연결해야 한다. Firebase Hosting 배포가 GAS 배포를 대신하지 않는다. 실제 Google OAuth 승인 원본에는 배포 후의 정확한 웹 도메인을 등록한다.
+
+사전 확인 테스트: `python3 -m unittest discover -s scripts/tests -v`. 샘플/누락 ID 차단, 플랫폼 ADC 및 불완전 CLI 세션의 대체 인증 차단, 사용자 프로젝트 접근 확인, 오류의 비밀값 비노출을 검증한다.
