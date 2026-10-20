@@ -26,7 +26,7 @@ class UsageGuideScreen extends StatelessWidget {
           const _GuideCard(
             title: 'Android · 홈 화면에 설치',
             body: '1. Chrome에서 https://paylog-c5c2d.web.app 을 열어요.\n'
-                '2. 오른쪽 위 ⋮ 메뉴 → 홈 화면에 추가 → 설치 또는 추가를 선택해요. 메뉴 이름은 Chrome 버전에 따라 달라요.\n'
+                '2. 오른쪽 위 더보기 메뉴 → 홈 화면에 추가 → 설치 또는 추가를 선택해요. 메뉴 이름은 Chrome 버전에 따라 달라요.\n'
                 '3. 홈 화면의 paylog를 열어 가계부를 연결해요. 수동 기록에는 별도 APK가 필요하지 않아요.',
           ),
           BentoCard(
