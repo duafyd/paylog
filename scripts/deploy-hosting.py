@@ -43,14 +43,26 @@ def firebase(args, env):
     except ValueError:
         raise RuntimeError('Firebase 응답을 확인하지 못했습니다. 인증·네트워크 설정을 확인하세요.') from None
     if result.returncode or payload.get('status') != 'success':
-        raise RuntimeError('Firebase 요청이 거부됐습니다. 로그인·프로젝트 권한·네트워크 설정을 확인하세요.')
+        details = json.dumps(payload).lower() + getattr(result, 'stderr', '').lower()
+        operation = args[0]
+        if any(word in details for word in ['invalid_grant', 'authentication error', 'unauthenticated', 'invalid token', 'invalid authentication', 'reauthenticate']):
+            raise RuntimeError(f'Firebase {operation}: 인증이 만료됐거나 토큰이 잘못됐습니다. unset FIREBASE_TOKEN 후 firebase login --no-localhost --reauth로 다시 로그인하세요.')
+        if any(word in details for word in ['permission_denied', 'permission denied', 'does not have permission', 'insufficient permission']):
+            raise RuntimeError(f'Firebase {operation}: 현재 계정에 프로젝트 권한이 없습니다. 프로젝트를 만든 Google 계정인지 확인하세요.')
+        if any(word in details for word in ['service_disabled', 'has not been used', 'it is disabled']):
+            raise RuntimeError(f'Firebase {operation}: 필요한 Google API가 비활성 상태입니다. 프로젝트의 API 설정을 확인하세요.')
+        raise RuntimeError(f'Firebase {operation} 요청이 거부됐습니다. Cloud Shell에서 unset FIREBASE_TOKEN 후 npx --yes firebase-tools@14.22.0 projects:list로 오류 원인을 확인하세요.')
     return payload.get('result')
 
 
 def preflight(environ):
     project, client = settings(environ)
     env = deployment_environment(environ)
-    if not env.get('FIREBASE_TOKEN'):
+    token = env.get('FIREBASE_TOKEN', '').strip()
+    if token and (token.startswith('4/') or len(token) < 32):
+        raise RuntimeError('FIREBASE_TOKEN에 일회용 인증 코드 또는 올바르지 않은 값이 들어 있습니다. unset FIREBASE_TOKEN 후 firebase login --no-localhost --reauth로 로그인하세요.')
+    if not token:
+        env.pop('FIREBASE_TOKEN', None)
         accounts = firebase(['login:list'], env)
         if not isinstance(accounts, list) or not accounts or not accounts[0].get('tokens', {}).get('refresh_token'):
             raise RuntimeError('Firebase 인증이 없습니다. 본인 계정으로 firebase login을 완료하거나 FIREBASE_TOKEN을 환경 설정에 안전하게 등록하세요.')
@@ -58,6 +70,19 @@ def preflight(environ):
     if not isinstance(projects, list) or not any(p.get('projectId') == project for p in projects):
         raise RuntimeError('인증된 계정에서 지정한 Firebase 프로젝트를 찾지 못했습니다. 프로젝트를 임의로 만들거나 변경하지 않았습니다.')
     return project, client, env
+
+
+def validate_existing_build(project_root, client):
+    """Allow a resumed deployment only for an intact, current production build."""
+    build = project_root / 'apps/web/build/web'
+    script = build / 'main.dart.js'
+    if not all((build / name).is_file() for name in ['index.html', 'main.dart.js', 'manifest.json']):
+        raise RuntimeError('완료된 웹 빌드가 없습니다. --resume 없이 다시 실행하세요.')
+    if client not in script.read_text():
+        raise RuntimeError('기존 빌드의 Google OAuth ID가 다릅니다. --resume 없이 다시 실행하세요.')
+    sources = subprocess.run(['git', 'ls-files', 'apps/web/lib', 'apps/web/web', 'apps/web/assets', 'apps/web/pubspec.yaml', 'apps/web/pubspec.lock'], cwd=project_root, text=True, capture_output=True, check=True)
+    if any((project_root / name).stat().st_mtime > script.stat().st_mtime for name in sources.stdout.splitlines()):
+        raise RuntimeError('웹 소스가 기존 빌드보다 새롭습니다. --resume 없이 다시 빌드하세요.')
 
 
 def main():

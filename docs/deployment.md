@@ -58,3 +58,19 @@ bash scripts/deploy-cloud-shell.sh
 기본값을 바꾸려면 FIREBASE_PROJECT_ID와 GOOGLE_WEB_CLIENT_ID를 명시적으로 설정한다. `--prepare-only`는 인증/배포 없이 SDK·의존성·실제 OAuth ID의 릴리스 빌드까지만 검증한다. 실제 Cloud Shell 인증/배포는 사용자의 로그인 없이는 이 개발환경에서 대신 검증할 수 없다.
 
 이미 `login:ci`로 토큰을 발급받았다면 Cloud Shell에서 `read -rsp 'Firebase token: ' FIREBASE_TOKEN; export FIREBASE_TOKEN; echo` 한 줄을 실행한 뒤, 숨김 입력에 발급된 토큰을 붙여넣는다. 토큰을 명령문에 직접 넣지 않아 셸 기록에 남기지 않는다. 그다음 위 배포 명령을 실행하면 추가 로그인 없이 해당 인증으로 배포한다. 스크립트는 프로젝트 ID와 같은 Hosting 사이트가 없으면 생성하고 그 사이트를 명시적으로 대상으로 삼는다. 기존 가계부 시트·GAS는 변경하지 않는다.
+
+## 프로젝트 목록 조회에서 인증 오류가 날 때
+
+`Built build/web` 뒤 `projects:list`에서 실패하면 아직 Hosting 배포는 실행되지 않았다. `FIREBASE_TOKEN`에 일회용 인증 코드·예시 문자열·만료된 값이 들어 있으면 CLI 로그인보다 우선되어 정상 계정 접근을 막을 수 있다. Cloud Shell에서 다음 순서로 복구한다.
+
+```sh
+unset FIREBASE_TOKEN
+npx --yes firebase-tools@14.22.0 login --no-localhost --reauth
+# 프로젝트를 만든 계정으로 로그인 완료 후, 기존 저장소 폴더에서
+# git pull --ff-only가 성공한 경우에만 수정된 배포 스크립트를 실행
+if git pull --ff-only; then
+  bash scripts/deploy-cloud-shell.sh --resume
+fi
+```
+
+`--resume`은 성공한 기존 빌드의 필수 파일·OAuth ID·빌드 이후 웹 소스 변경 여부를 확인하고 다운로드/재빌드를 생략한다. 소스가 바뀌었거나 빌드가 없으면 일반 실행으로 다시 빌드해야 한다. 인증과 프로젝트 접근은 이제 SDK 설치·빌드보다 먼저 확인한다. 인증/권한/API 비활성 오류는 민감한 원문을 출력하지 않고 원인별 안내를 제공한다. 여전히 프로젝트 접근이 안 되면 같은 계정에서 `npx --yes firebase-tools@14.22.0 projects:list`를 직접 실행해 오류 안내를 확인한다. 코드는 Cloud Shell에만 입력하고 채팅에는 보내지 않는다.
