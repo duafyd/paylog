@@ -39,3 +39,22 @@ python3 scripts/deploy-hosting.py --deploy
 GAS는 별도 소유자 계정의 Apps Script 프로젝트와 가계부 시트가 필요하다. 아직 실제 스크립트 ID·배포 URL이 없으며 [SMS 운영 설정](sms-setup.md)의 순서대로 연결해야 한다. Firebase Hosting 배포가 GAS 배포를 대신하지 않는다. 실제 Google OAuth 승인 원본에는 배포 후의 정확한 웹 도메인을 등록한다.
 
 사전 확인 테스트: `python3 -m unittest discover -s scripts/tests -v`. 샘플/누락 ID 차단, 플랫폼 ADC 및 불완전 CLI 세션의 대체 인증 차단, 사용자 프로젝트 접근 확인, 오류의 비밀값 비노출을 검증한다.
+
+## PC 없이 Google Cloud Shell에서 배포
+
+Codex의 환경 설정 화면에 접근하기 어렵다면 사용자 Google Cloud Shell 안에서 로그인·빌드·배포를 모두 수행한다. 비밀 토큰을 Codex나 채팅으로 옮기지 않는다. 저장소는 공개 상태이므로 GitHub 로그인 없이 소스를 받을 수 있다.
+
+[프로젝트 Cloud Shell 열기](https://shell.cloud.google.com/?project=paylog-c5c2d)에서 아래 명령을 실행한다. 기존 폴더를 덮어쓰지 않도록 새 임시 디렉터리를 사용한다.
+
+```sh
+paylog_deploy_dir=$(mktemp -d)
+git clone --depth 1 --branch feat/complete-budget-workflows https://github.com/duafyd/paylog.git "$paylog_deploy_dir/paylog"
+cd "$paylog_deploy_dir/paylog"
+bash scripts/deploy-cloud-shell.sh
+```
+
+스크립트는 사용자에게 받은 공개 프로젝트/OAuth ID를 기본값으로 사용하고 Flutter 3.47.7의 커밋을 검증한 뒤 릴리스 빌드를 만든다. SDK가 없으면 임시 도구 디렉터리에 설치한다. `firebase login --no-localhost`의 로그인 링크를 열고 요구하는 코드는 **Cloud Shell 터미널에** 입력한다. 배포 대상 프로젝트 접근을 확인한 뒤 Hosting만 배포하고 공개 HTTP 응답을 확인한다. 토큰을 채팅으로 보내거나 별도 Codex 환경 변수에 등록할 필요가 없다. Google OAuth 승인 원본과 Sheets API 활성화는 Google 콘솔에서 별도로 확인한다.
+
+기본값을 바꾸려면 FIREBASE_PROJECT_ID와 GOOGLE_WEB_CLIENT_ID를 명시적으로 설정한다. `--prepare-only`는 인증/배포 없이 SDK·의존성·실제 OAuth ID의 릴리스 빌드까지만 검증한다. 실제 Cloud Shell 인증/배포는 사용자의 로그인 없이는 이 개발환경에서 대신 검증할 수 없다.
+
+이미 `login:ci`로 토큰을 발급받았다면 Cloud Shell에서 `read -rsp 'Firebase token: ' FIREBASE_TOKEN; export FIREBASE_TOKEN; echo` 한 줄을 실행한 뒤, 숨김 입력에 발급된 토큰을 붙여넣는다. 토큰을 명령문에 직접 넣지 않아 셸 기록에 남기지 않는다. 그다음 위 배포 명령을 실행하면 추가 로그인 없이 해당 인증으로 배포한다. 스크립트는 프로젝트 ID와 같은 Hosting 사이트가 없으면 생성하고 그 사이트를 명시적으로 대상으로 삼는다. 기존 가계부 시트·GAS는 변경하지 않는다.
