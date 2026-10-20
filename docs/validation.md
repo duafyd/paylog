@@ -1,3 +1,17 @@
+# 실제 Hosting 배포 확인 (2026-10-20, 한국 시간)
+
+사용자가 본인 Google Cloud Shell에서 Firebase 인증 및 배포 명령의 성공을 보고했고, 이후 공개 배포 주소 `https://paylog-c5c2d.web.app`를 별도로 확인했다.
+
+- `/`: HTTPS 검증을 유지한 요청에서 HTTP 200, paylog HTML 응답.
+- `/manifest.json`: HTTP 200, PWA manifest 응답.
+- `/main.dart.js`: HTTP 200, 사용자 제공 공개 OAuth 클라이언트 ID 포함 확인.
+- 개발환경의 Chromium 직접 접속은 플랫폼 프록시 CA를 신뢰하지 않아 ERR_CERT_AUTHORITY_INVALID로 실패했다. Python의 시스템 신뢰 저장소를 통한 HTTPS 요청은 성공했으며, 인증서 검증을 끄지 않았다. 격리된 NSS 신뢰 저장소 시도도 해결되지 않아 추가 브라우저 검증을 중단했다. 공개 배포의 화면 렌더링 성공으로 보고하지 않는다.
+- 사용자 Google OAuth 로그인·Sheets 생성/가족 공유 ACL·GAS 실제 수집은 아직 미검증이다. 실제 모바일 기기 테스트는 요청에 따라 제외한 상태다.
+
+아래 이전 절의 “실제 배포 미실행”은 당시 기록이다. 현재 웹 Hosting 배포는 확인했으며 GAS 배포와 Google 실제 연동 검증은 별도다.
+
+---
+
 # 배포 진행 결과 (2026-10-20 UTC)
 
 사용자의 실제 배포 요청에 따라 Firebase CLI 로그인 상태를 확인했다. 저장된 계정은 0개이고 현재 프로세스의 FIREBASE_PROJECT_ID, GOOGLE_WEB_CLIENT_ID, FIREBASE_TOKEN은 설정되지 않았다. GitHub 저장소 Actions 변수/비밀값 목록은 현재 연동 권한으로 HTTP 403 거부되어 설정값을 가져오지 못했다. 플랫폼 GOOGLE_APPLICATION_CREDENTIALS는 사용자 계정 대신 사용하지 않았다.
