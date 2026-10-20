@@ -92,7 +92,7 @@ Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fo
 
 웹앱 **설정 → Android · iPhone 사용 가이드**에서 홈 화면 설치, Google/가계부 연결, Android 문자 수집 앱 설치·설정, iPhone 단축어 구성과 문제 해결 방법을 볼 수 있습니다. Android 보조 앱에도 **사용 방법 보기**가 있습니다.
 
-이미 Firebase에 로그인한 본인 Cloud Shell의 저장소 루트에서 아래 명령으로 최신 웹 가이드와 정식 서명 APK를 각각 배포합니다.
+Firebase와 GitHub CLI(`gh auth login --hostname github.com --git-protocol https --web`)에 로그인한 본인 Cloud Shell의 저장소 루트에서 아래 명령으로 최신 웹 가이드와 정식 서명 APK를 각각 배포합니다.
 
 ```sh
 git pull --ff-only && bash scripts/deploy-cloud-shell.sh && python3 scripts/release-android.py

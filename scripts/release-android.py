@@ -19,6 +19,9 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = '1.0.0'
 VERSION_CODE = 2
 ALIAS = 'paylog-release'
+REPOSITORY = 'duafyd/paylog'
+RELEASE_TAG = 'android-v' + VERSION
+APK_URL = f'https://github.com/{REPOSITORY}/releases/download/{RELEASE_TAG}/paylog-sms.apk'
 spec = importlib.util.spec_from_file_location('hosting', ROOT / 'scripts/deploy-hosting.py')
 hosting = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hosting)
@@ -66,18 +69,20 @@ def stage_download(apk, public, metadata):
     certificate = metadata.get('certificateSha256', '')
     if not re.fullmatch(r'[a-f0-9]{64}', certificate):
         raise RuntimeError('검증된 공개 서명 인증서 지문이 필요합니다.')
-    metadata = {'certificateSha256': certificate, 'versionName': VERSION, 'versionCode': VERSION_CODE, 'sha256': digest, 'size': len(data), 'url': '/paylog-sms.apk'}
+    metadata = {'certificateSha256': certificate, 'versionName': VERSION, 'versionCode': VERSION_CODE, 'sha256': digest, 'size': len(data), 'url': APK_URL}
     (download / 'paylog-sms.apk').write_bytes(data)
     (download / 'paylog-sms.apk.sha256').write_text(digest + '  paylog-sms.apk\n')
     (download / 'android-release.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2))
-    (download / 'index.html').write_text('''<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>paylog Android 앱</title><style>body{background:#f7f8fa;color:#263735;font:16px system-ui;margin:0;padding:32px 20px}main{max-width:520px;margin:32px auto;background:white;border-radius:24px;padding:28px}a{display:block;background:#207a75;color:white;padding:18px;text-align:center;border-radius:16px;text-decoration:none}p{line-height:1.7}small{color:#526562}</style><main><h1>paylog Android</h1><p>문자를 받아 우리 집 가계부로 전송하는 보조 앱입니다.</p><a href="paylog-sms.apk" download>Android 앱 다운로드 · v''' + VERSION + '''</a><p>다운로드한 APK를 열어 설치하세요. 설치를 요청한 브라우저의 ‘알 수 없는 앱 설치’ 허용이 필요할 수 있습니다.</p><p>SMS 자동 수집에는 GAS 주소·기기 등록·SMS 수신 권한 설정이 필요합니다.</p><small>이전 개발용 앱은 서명이 달라 교체 설치가 필요할 수 있습니다. 삭제하면 그 앱의 설정과 대기 문자가 삭제됩니다. 실제 SMS 수신·배터리 제한 동작은 기기에서 확인해야 합니다.</small></main></html>''')
+    (download / 'index.html').write_text('''<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>paylog Android 앱</title><style>body{background:#f7f8fa;color:#263735;font:16px system-ui;margin:0;padding:32px 20px}main{max-width:520px;margin:32px auto;background:white;border-radius:24px;padding:28px}a{display:block;background:#207a75;color:white;padding:18px;text-align:center;border-radius:16px;text-decoration:none}p{line-height:1.7}small{color:#526562}</style><main><h1>paylog Android</h1><p>문자를 받아 우리 집 가계부로 전송하는 보조 앱입니다.</p><a href="''' + APK_URL + '''">Android 앱 다운로드 · v''' + VERSION + '''</a><p>다운로드한 APK를 열어 설치하세요. 설치를 요청한 브라우저의 ‘알 수 없는 앱 설치’ 허용이 필요할 수 있습니다.</p><p>SMS 자동 수집에는 GAS 주소·기기 등록·SMS 수신 권한 설정이 필요합니다.</p><small>이전 개발용 앱은 서명이 달라 교체 설치가 필요할 수 있습니다. 삭제하면 그 앱의 설정과 대기 문자가 삭제됩니다. 실제 SMS 수신·배터리 제한 동작은 기기에서 확인해야 합니다.</small></main></html>''')
     return metadata
 
 
 def hosting_config(site):
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,28}[a-z0-9]', site):
         raise RuntimeError('다운로드 사이트 ID 형식이 올바르지 않습니다. PAYLOG_ANDROID_SITE_ID를 확인하세요.')
-    return {'hosting': {'site': site, 'ignore': ['**/.*'], 'headers': [
+    return {'hosting': {'site': site, 'ignore': ['**/.*', '**/*.apk'],
+        'redirects': [{'source': '/paylog-sms.apk', 'destination': APK_URL, 'type': 302}],
+        'headers': [
         {'source': '**', 'headers': [
             {'key': 'X-Content-Type-Options', 'value': 'nosniff'},
             {'key': 'Cache-Control', 'value': 'no-cache'}]},
@@ -85,6 +90,32 @@ def hosting_config(site):
             {'key': 'Content-Type', 'value': 'application/vnd.android.package-archive'},
             {'key': 'Content-Disposition', 'value': 'attachment; filename="paylog-sms.apk"'}]},
     ]}}
+
+
+def publish_github(download, metadata):
+    """Publish only verified public artifacts; never replace a published release."""
+    base = ['gh', 'release']
+    view = subprocess.run([*base, 'view', RELEASE_TAG, '--repo', REPOSITORY,
+                           '--json', 'isDraft'], text=True, capture_output=True)
+    if view.returncode:
+        commit = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
+                                text=True, capture_output=True, check=True).stdout.strip()
+        subprocess.run([*base, 'create', RELEASE_TAG, '--repo', REPOSITORY,
+                        '--target', commit, '--draft', '--title', 'paylog Android ' + VERSION,
+                        '--notes', 'Signed Android SMS companion. See the in-app guide for setup. Physical-device SMS testing is pending.'], check=True)
+    elif not json.loads(view.stdout)['isDraft']:
+        existing = subprocess.run([*base, 'download', RELEASE_TAG, '--repo', REPOSITORY,
+                                   '--pattern', 'android-release.json', '--output', '-'],
+                                  text=True, capture_output=True, check=True)
+        previous = json.loads(existing.stdout)
+        if any(previous.get(key) != metadata[key] for key in ['sha256', 'certificateSha256', 'versionCode']):
+            raise RuntimeError('이 버전은 다른 APK로 이미 공개됐습니다. 기존 파일을 교체하지 말고 버전을 올려 주세요.')
+        return
+    subprocess.run([*base, 'upload', RELEASE_TAG, '--repo', REPOSITORY, '--clobber',
+                    *[str(download / name) for name in
+                      ['paylog-sms.apk', 'paylog-sms.apk.sha256', 'android-release.json']]], check=True)
+    subprocess.run([*base, 'edit', RELEASE_TAG, '--repo', REPOSITORY,
+                    '--draft=false', '--latest=false'], check=True)
 
 
 def gradle_environment(tools, store, password_file):
@@ -126,6 +157,10 @@ def main():
         # Confirm account/project before generating a production signing identity.
         if not options.build_only:
             project, client, firebase_env = hosting.preflight(os.environ)
+            if not shutil.which('gh'):
+                raise RuntimeError('GitHub CLI가 필요합니다. Cloud Shell에서 sudo apt-get update && sudo apt-get install -y gh 를 실행하세요.')
+            if subprocess.run(['gh', 'auth', 'status', '--hostname', 'github.com'], capture_output=True).returncode:
+                raise RuntimeError('GitHub 로그인이 필요합니다. gh auth login --hostname github.com --git-protocol https --web 실행 후 재시도하세요.')
         if options.resume:
             validate_existing_apk(ROOT)
             if not all((keydir / name).is_file() for name in ['paylog-release.p12', 'signing.keypass']):
@@ -173,11 +208,15 @@ def main():
         # and make it impossible for a signing file to enter the upload tree.
         with tempfile.TemporaryDirectory(prefix='android-release-public-', dir=build) as public_dir:
             metadata = stage_download(apk, Path(public_dir), {'certificateSha256': fingerprint[1].lower()})
+            download = Path(public_dir) / 'downloads'
+            publish_github(download, metadata)
+            # Spark Hosting rejects APK files. Keep only HTML and public metadata.
+            (download / 'paylog-sms.apk').unlink()
             config['hosting']['public'] = str(Path(public_dir).relative_to(build) / 'downloads')
             config_path = build / 'android-release.firebase.json'
             config_path.write_text(json.dumps(config))
             hosting.firebase(['deploy', '--only', 'hosting', '--project', project, '--config', str(config_path)], firebase_env, live=True)
-        url = 'https://' + site + '.web.app/paylog-sms.apk'
+        url = APK_URL
         with urllib.request.urlopen(url, timeout=30) as response:
             if hashlib.sha256(response.read()).hexdigest() != metadata['sha256']:
                 raise RuntimeError('배포된 APK 해시가 일치하지 않습니다.')

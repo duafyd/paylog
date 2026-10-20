@@ -27,6 +27,6 @@ bash scripts/check-android.sh
 
 ## 릴리스 설치 파일
 
-`1.0.0`부터 실제 배포용 서명키를 지원한다. [릴리스 배포 절차](../../docs/deployment.md)의 `python3 scripts/release-android.py`를 본인 Cloud Shell에서 실행하면 서명 APK를 검증하고 같은 Firebase 프로젝트의 `https://paylog-c5c2d-android.web.app/`에 게시한다. 웹 사이트 업데이트와 별도로 유지되는 다운로드 전용 사이트다. 서명키는 본인 계정에 보관하고 같은 키로 후속 업데이트를 만든다. 암호화된 키 파일의 백업과 본인 암호 보관이 필요하다. APK와 공개 체크섬만 게시하며 키·암호를 업로드하지 않는다.
+`1.0.0`부터 실제 배포용 서명키를 지원한다. [릴리스 배포 절차](../../docs/deployment.md)의 `python3 scripts/release-android.py`를 본인 Cloud Shell에서 실행하면 서명 APK를 검증해 GitHub Releases에 게시하고, `https://paylog-c5c2d-android.web.app/`에는 다운로드 안내 페이지를 게시한다. Firebase Spark는 APK 업로드를 금지하므로 파일을 직접 올리지 않는다. 본인 Cloud Shell의 GitHub CLI 로그인도 필요하다. 웹 사이트 업데이트와 별도로 유지되는 다운로드 전용 사이트다. 서명키는 본인 계정에 보관하고 같은 키로 후속 업데이트를 만든다. 암호화된 키 파일의 백업과 본인 암호 보관이 필요하다. APK와 공개 체크섬만 게시하며 키·암호를 업로드하지 않는다.
 
 새 디버그 빌드는 `app.paylog.sms.debug`, 릴리스는 `app.paylog.sms`다. 기존 0.1.0 디버그 APK는 릴리스와 패키지가 같고 서명이 달라 직접 업데이트할 수 없으므로, 설정/대기 문자를 확인한 뒤 기존 개발용 앱을 삭제하고 릴리스를 설치해야 한다. 실제 SMS·삼성 배터리 제한 검증 상태는 기존과 동일하게 미검증이다.

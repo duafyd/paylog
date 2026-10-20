@@ -13,6 +13,28 @@ spec.loader.exec_module(release)
 
 
 class AndroidReleaseTest(unittest.TestCase):
+    def test_github_release_uploads_only_public_assets_then_publishes(self):
+        responses = [SimpleNamespace(returncode=0, stdout='{"isDraft":true}'),
+                     SimpleNamespace(returncode=0), SimpleNamespace(returncode=0)]
+        with patch.object(release.subprocess, 'run', side_effect=responses) as run:
+            release.publish_github(Path('/public'), {})
+            upload = run.call_args_list[1].args[0]
+            self.assertEqual(upload[-3:], ['/public/paylog-sms.apk', '/public/paylog-sms.apk.sha256', '/public/android-release.json'])
+            self.assertIn('--draft=false', run.call_args_list[2].args[0])
+
+    def test_published_github_release_is_not_replaced(self):
+        metadata = {'sha256': 'a', 'certificateSha256': 'b', 'versionCode': 2}
+        for digest in ['a', 'different']:
+            responses = [SimpleNamespace(returncode=0, stdout='{"isDraft":false}'),
+                         SimpleNamespace(returncode=0, stdout=json.dumps({**metadata, 'sha256': digest}))]
+            with patch.object(release.subprocess, 'run', side_effect=responses) as run:
+                if digest == 'a':
+                    release.publish_github(Path('/public'), metadata)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, '이미 공개'):
+                        release.publish_github(Path('/public'), metadata)
+                self.assertEqual(run.call_count, 2)
+
     def test_resume_rejects_missing_or_stale_apk(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -73,6 +95,8 @@ class AndroidReleaseTest(unittest.TestCase):
             signed = root / 'app-release.apk'
             signed.write_bytes(b'test-apk-bytes')
             metadata = release.stage_download(signed, root / 'web', {'certificateSha256':'a'*64, 'password':'PRIVATE_DO_NOT_PUBLISH'})
+            self.assertEqual(metadata['url'], release.APK_URL)
+            self.assertIn(release.APK_URL, (root / 'web/downloads/index.html').read_text())
             self.assertEqual(metadata['sha256'], release.hashlib.sha256(signed.read_bytes()).hexdigest())
             files = list((root / 'web/downloads').iterdir())
             self.assertEqual(len(files), 4)
@@ -83,6 +107,8 @@ class AndroidReleaseTest(unittest.TestCase):
         config = release.hosting_config('paylog-c5c2d-android')['hosting']
         self.assertEqual(config['site'], 'paylog-c5c2d-android')
         self.assertNotIn('rewrites', config)
+        self.assertIn('**/*.apk', config['ignore'])
+        self.assertEqual(config['redirects'][0]['destination'], release.APK_URL)
         headers = next(h['headers'] for h in config['headers'] if h['source'] == '/paylog-sms.apk')
         self.assertIn({'key':'Content-Type','value':'application/vnd.android.package-archive'}, headers)
         with self.assertRaises(RuntimeError):

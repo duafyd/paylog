@@ -160,3 +160,7 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 ### Hosting 배포 실패 복구
 
 사용자의 Cloud Shell에서 Android 빌드 성공 후 Hosting deploy 실패가 보고됐다. 이후 프로젝트 목록·웹/Android 사이트 목록 조회는 성공했다. 실제 deploy 실패 원인은 아직 확인되지 않았다. `release-android.py --resume`으로 기존 APK·키의 검증을 유지하며 빌드를 생략하고, Firebase deploy의 일반 오류를 본인 터미널에 표시하도록 변경했다. Python 테스트 **15개 통과**(기존 APK 누락/소스 변경 거부 및 CLI 오류 전달 검사 추가). 이 결과는 실제 Hosting 업로드 성공을 의미하지 않는다.
+
+### Spark 요금제 실행 파일 제한 대응
+
+실제 오류는 Firebase Hosting `populateFiles`의 HTTP 400: **Executable files are forbidden on the Spark billing plan**이었다. 로그인 실패가 아니었다. APK 게시를 GitHub Releases로 옮겼으며 Firebase에는 HTML·JSON·체크섬만 배포한다. APK 파일은 staging에서 제거하고 Hosting ignore에도 추가했다. 기존 APK 경로는 GitHub 공개 asset으로 리다이렉트한다. 공개된 동일 버전은 덮어쓰지 않으며 APK 해시·인증서가 다르면 중단한다. 배포 관련 테스트 **17개 통과**. 실제 소유자 APK 업로드에는 본인 Cloud Shell의 GitHub 인증이 필요하며 아직 완료되지 않았다.

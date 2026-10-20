@@ -77,6 +77,8 @@ fi
 
 ## Android 릴리스 APK 배포 (본인 Cloud Shell)
 
+GitHub CLI와 저장소 쓰기 권한이 있는 본인 GitHub 로그인이 필요하다. CLI가 없으면 `sudo apt-get update && sudo apt-get install -y gh`로 설치하고, `gh auth login --hostname github.com --git-protocol https --web`으로 로그인한다. 표시되는 일회용 코드는 GitHub의 기기 인증 페이지에 입력하며 채팅에 보내지 않는다. Firebase 프로젝트는 Spark 무료 요금제를 유지할 수 있다.
+
 릴리스는 `app.paylog.sms`, versionName `1.0.0`, versionCode `2`다. 이후 디버그 빌드는 `.debug` 패키지와 개발용 앱 이름을 사용한다. CI에는 실배포 키를 넣지 않으며, CI의 unsigned 릴리스 APK는 설치·배포용으로 사용하지 않는다.
 
 이미 웹 배포에 성공한 **동일한 Cloud Shell의 paylog 폴더**에서 다음을 실행한다. 현재 계정의 Firebase 프로젝트 접근을 먼저 확인한다.
@@ -89,7 +91,7 @@ git pull --ff-only && python3 scripts/release-android.py
 
 Cloud Shell에 처음 키를 생성하면 `cloudshell download`로 **본인 암호로 암호화된 PKCS12 키 파일**의 개인 백업 다운로드를 요청한다. 이 파일과 암호를 안전하게 보관해야 다음 버전을 같은 앱으로 업데이트할 수 있다. 서명키·암호는 Git, 공개 Hosting, Actions artifact에 업로드하지 않는다. Cloud Shell 저장소만을 영구 백업으로 간주하지 않는다. 암호 파일은 키와 함께 Cloud Shell의 개인 디렉터리에만 두며 권한은 600이다.
 
-스크립트는 고정 JDK/Android SDK/Gradle 설치, 릴리스 단위 테스트·Lint·APK 빌드, APK 서명과 보관 키의 공개 인증서 일치, 패키지·버전·debuggable=false를 확인한다. 같은 Firebase 프로젝트의 다운로드 전용 Hosting 사이트에 APK와 다운로드 페이지를 배포한다. 웹 가계부의 사이트·데이터는 변경하지 않는다. 업로드된 APK를 HTTPS로 다시 받아 SHA-256도 확인한다.
+스크립트는 고정 JDK/Android SDK/Gradle 설치, 릴리스 단위 테스트·Lint·APK 빌드, APK 서명과 보관 키의 공개 인증서 일치, 패키지·버전·debuggable=false를 확인한다. APK·체크섬·공개 인증서 정보를 GitHub Releases의 `android-v1.0.0`에 게시하고, 같은 Firebase 프로젝트의 다운로드 전용 Hosting 사이트에는 안내 페이지와 공개 메타데이터만 배포한다. Spark 무료 요금제는 APK 같은 실행 파일 업로드를 금지하므로 APK는 Hosting에 올리지 않는다. 기존 `/paylog-sms.apk` 주소는 GitHub 파일로 302 이동한다. 웹 가계부의 사이트·데이터는 변경하지 않는다. 업로드된 APK를 HTTPS로 다시 받아 SHA-256도 확인한다.
 
 - 다운로드 페이지: `https://paylog-c5c2d-android.web.app/`
 - 설치 파일: `https://paylog-c5c2d-android.web.app/paylog-sms.apk`
