@@ -170,3 +170,5 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 `apps/web/web/privacy.html`, `terms.html`, `legal.css`를 추가했다. 문서는 로그인·JavaScript 없이 읽을 수 있고, 계정/원장/SMS 처리, 공유·보관·삭제·철회, 외부 제공자, 문의처와 이용 조건을 설명한다. 실제 거래 삭제가 소프트 삭제임을 명시하며 Google API Limited Use 정책을 포함한다. 공개 문의에 민감정보를 게시하지 않도록 안내한다. 웹 설정과 초기 HTML에서 링크한다. Google OAuth 게시·검증 승인은 별도이며, 최신 문서의 운영 사이트 반영에는 본인 Cloud Shell의 웹 재배포가 필요하다.
 
 이 변경의 로컬 검증: Flutter 포맷·정적 분석·테스트 63개·웹 릴리스 빌드 통과. 393px Chromium에서 JavaScript 비활성 상태로 두 문서의 표시·가로 넘침 없음·내부 링크를 검사하고 화면을 검수했다. Hosting 에뮬레이터에서 실제 HTML 응답(Flutter SPA fallback 아님), no-store 헤더와 CSS 응답을 확인했다. 실제 공개 URL은 웹 재배포 전에는 준비 완료로 간주하지 않는다.
+
+운영자가 공개 문의 이메일 `duafyd@gmail.com`을 지정해 두 문서에 반영했다. 일반 오류용 GitHub 문의와 개인정보 이메일 문의를 구분하고, Hosting 에뮬레이터 검사에 mailto 링크 확인을 추가해 통과했다.

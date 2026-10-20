@@ -99,6 +99,6 @@ NODE_PATH=/tmp/paylog-browser-tools/node_modules CHROMIUM_PATH=/usr/bin/chromium
 | 애플리케이션 개인정보처리방침 링크 | `https://paylog-c5c2d.web.app/privacy.html` |
 | 애플리케이션 서비스 약관 링크 | `https://paylog-c5c2d.web.app/terms.html` |
 
-두 문서는 Flutter 실행·Google 로그인 없이 열리는 HTML이다. 앱 설정과 초기 HTML에도 링크가 있다. 개인정보 문의처는 공개 프로젝트의 GitHub Issues로 연결하며 민감정보를 공개 게시하지 않도록 안내한다. 운영자가 별도 공개 이메일을 정하면 문서의 문의처를 갱신한다. 문서는 실제 데이터 처리 방식·운영 정보가 변경될 때 함께 관리해야 한다.
+두 문서는 Flutter 실행·Google 로그인 없이 열리는 HTML이다. 앱 설정과 초기 HTML에도 링크가 있다. 개인정보 문의처는 운영자가 지정한 `duafyd@gmail.com`이며, GitHub Issues는 일반 오류 문의용으로 구분한다. 비밀번호·인증 코드·기기 토큰은 이메일로도 보내지 않도록 안내한다. 문서는 실제 데이터 처리 방식·운영 정보가 변경될 때 함께 관리해야 한다.
 
 Cloud Shell의 저장소 루트에서 `git pull --ff-only && bash scripts/deploy-cloud-shell.sh`로 웹만 재배포한다. 페이지 생성·배포가 Google OAuth 검증 승인이나 게시 상태 변경을 자동으로 수행하지는 않는다. 홈페이지 도메인 소유권, 개발자 연락처, 요청 범위와 검증 항목은 Google Console의 실제 요구사항을 따른다.

@@ -11,6 +11,7 @@ const assert=require('node:assert/strict');
   const html=await response.text();assert(html.includes('<h1>'+title+'</h1>'));
   assert(!html.includes('flutter_bootstrap.js'));
   assert(html.includes('https://github.com/duafyd/paylog/issues'));
+  assert(html.includes('mailto:duafyd@gmail.com'));
   assert.equal(response.headers.get('cache-control'),'no-store');
  }
  const css=await fetch(base+'/legal.css');assert.equal(css.status,200);assert.match(css.headers.get('content-type'),/text\/css/);
