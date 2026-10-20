@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import os
+from types import SimpleNamespace
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +13,25 @@ spec.loader.exec_module(release)
 
 
 class AndroidReleaseTest(unittest.TestCase):
+    def test_resume_rejects_missing_or_stale_apk(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaisesRegex(RuntimeError, 'APK가 없습니다'):
+                release.validate_existing_apk(root)
+            apk = root / 'apps/sms_android/app/build/outputs/apk/release/app-release.apk'
+            apk.parent.mkdir(parents=True)
+            apk.write_bytes(b'test-apk')
+            source = root / 'apps/sms_android/app/src/main/test.kt'
+            source.parent.mkdir(parents=True)
+            source.write_text('source')
+            os.utime(source, (10, 10))
+            os.utime(apk, (20, 20))
+            with patch.object(release.subprocess, 'run', return_value=SimpleNamespace(stdout=str(source.relative_to(root)) + '\n')):
+                self.assertEqual(release.validate_existing_apk(root), apk)
+                os.utime(source, (30, 30))
+                with self.assertRaisesRegex(RuntimeError, '소스가 기존 APK보다'):
+                    release.validate_existing_apk(root)
+
     def test_partial_identity_never_generates_a_replacement_key(self):
         with tempfile.TemporaryDirectory() as root:
             directory = Path(root)

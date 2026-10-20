@@ -98,3 +98,16 @@ Cloud Shell에 처음 키를 생성하면 `cloudshell download`로 **본인 암�
 위 주소는 **릴리스 스크립트가 실제로 성공한 뒤** 사용할 수 있다. 릴리스 서명이 실제 SMS 수신·백그라운드 동작 검증을 대신하지 않는다. GAS·기기 등록이 필요하고 실기기 검증은 이번 요청에서 제외돼 있다. 기존 0.1.0 개발용 APK가 설치돼 있으면 서명이 달라 교체 설치가 필요할 수 있다. 개발용 앱 삭제 전 설정과 대기 문자를 확인한다. 삭제 시 해당 앱의 개인 저장소는 사라진다.
 
 다른 Firebase 프로젝트는 FIREBASE_PROJECT_ID / GOOGLE_WEB_CLIENT_ID, 다른 SDK 위치는 PAYLOG_TOOLS_DIR, 다운로드 사이트 ID는 PAYLOG_ANDROID_SITE_ID로 지정한다. `--build-only`는 공개 배포 없이 서명 APK까지만 만든다. Play 스토어 등록·심사·SMS 권한 승인은 이 직접 APK 배포에 포함하지 않는다.
+
+### APK 빌드 성공 후 Hosting 배포만 실패한 경우
+
+프로젝트·사이트 조회가 성공해도 실제 업로드 권한이나 배포 설정 오류는 별도로 발생할 수 있다. 일반적인 로그인 오류로 단정하지 않는다. 최신 스크립트는 배포 시 Firebase CLI의 일반 오류 출력을 본인 터미널에 그대로 표시한다(`--debug` 사용 안 함).
+
+```sh
+cd "$HOME/paylog"
+git pull --ff-only
+unset FIREBASE_TOKEN
+python3 scripts/release-android.py --resume
+```
+
+`--resume`은 기존 APK 존재·소스 수정 시각·기존 키 파일을 확인하고 Gradle 빌드를 건너뛴다. APK 서명·보관 키 인증서 일치·버전·debuggable 검사는 다시 수행한다. 기존 키를 재생성하지 않으며, 새 소스가 있거나 APK가 없으면 일반 빌드를 요구한다. 배포 실패 후 임시 게시 폴더는 정리되므로 이전 Firebase config를 직접 재사용하지 말고 이 명령으로 다시 구성한다. 오류를 공유할 때 토큰·인증 코드·서명키 암호는 포함하지 않는다.

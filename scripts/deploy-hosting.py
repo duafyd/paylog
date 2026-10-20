@@ -34,8 +34,16 @@ def deployment_environment(environ):
     return env
 
 
-def firebase(args, env):
-    command = ['npx', '--yes', 'firebase-tools@14.22.0', *args, '--non-interactive', '--json']
+def firebase(args, env, *, live=False):
+    command = ['npx', '--yes', 'firebase-tools@14.22.0', *args, '--non-interactive']
+    if live:
+        # Show normal CLI diagnostics directly in the owner's terminal. Never
+        # enable debug logging or serialize the environment/credentials.
+        result = subprocess.run(command, cwd=ROOT, env=env)
+        if result.returncode:
+            raise RuntimeError('Firebase 배포가 실패했습니다. 바로 위 Firebase 오류 메시지를 확인하세요. 기존 APK와 서명키는 보존했습니다.')
+        return None
+    command.append('--json')
     result = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True)
     # Never echo raw CLI responses/errors: they can contain credentials/URLs.
     try:

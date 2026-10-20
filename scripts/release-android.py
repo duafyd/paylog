@@ -98,9 +98,25 @@ def gradle_environment(tools, store, password_file):
     return env
 
 
+def validate_existing_apk(root):
+    apk = root / 'apps/sms_android/app/build/outputs/apk/release/app-release.apk'
+    if not apk.is_file():
+        raise RuntimeError('기존 서명 APK가 없습니다. --resume 없이 실행하세요.')
+    sources = subprocess.run(
+        ['git', 'ls-files', 'apps/sms_android/app/src',
+         'apps/sms_android/app/build.gradle.kts', 'apps/sms_android/build.gradle.kts',
+         'apps/sms_android/settings.gradle.kts', 'apps/sms_android/gradle.properties',
+         'apps/sms_android/gradle'], cwd=root, text=True, capture_output=True, check=True)
+    if any((root / name).stat().st_mtime > apk.stat().st_mtime
+           for name in sources.stdout.splitlines()):
+        raise RuntimeError('Android 소스가 기존 APK보다 새롭습니다. --resume 없이 다시 빌드하세요.')
+    return apk
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-only', action='store_true', help='서명 APK 검증까지만 진행하고 배포하지 않음')
+    parser.add_argument('--resume', action='store_true', help='기존 APK의 서명·버전·소스 상태를 확인하고 빌드 없이 배포 재시도')
     options = parser.parse_args()
     tools = Path(os.environ.get('PAYLOG_TOOLS_DIR', '/tmp/paylog-android-tools')).resolve()
     keydir = Path(os.environ.get('PAYLOG_SIGNING_DIR', str(Path.home() / '.local/share/paylog-signing'))).resolve()
@@ -110,6 +126,10 @@ def main():
         # Confirm account/project before generating a production signing identity.
         if not options.build_only:
             project, client, firebase_env = hosting.preflight(os.environ)
+        if options.resume:
+            validate_existing_apk(ROOT)
+            if not all((keydir / name).is_file() for name in ['paylog-release.p12', 'signing.keypass']):
+                raise RuntimeError('기존 서명키와 암호 파일을 먼저 복원하세요. 재개 시 새 키를 만들지 않습니다.')
         subprocess.run(['bash', str(ROOT / 'scripts/bootstrap-android.sh')], env={**os.environ, 'PAYLOG_TOOLS_DIR': str(tools)}, check=True)
         keytool = tools / 'jdk-21.0.12.1+1/bin/keytool'
         first_key = not (keydir / 'paylog-release.p12').exists()
@@ -126,7 +146,8 @@ def main():
         trust = Path('/etc/ssl/certs/java/cacerts')
         if trust.exists():
             args += ['-Djavax.net.ssl.trustStore=' + str(trust)]
-        subprocess.run(args, env=env, check=True)
+        if not options.resume:
+            subprocess.run(args, env=env, check=True)
         apk = ROOT / 'apps/sms_android/app/build/outputs/apk/release/app-release.apk'
         signer = tools / 'android-sdk/build-tools/36.0.0/apksigner'
         verify = subprocess.run([str(signer), 'verify', '--verbose', '--print-certs', str(apk)], env=env, text=True, capture_output=True, check=True)
@@ -155,7 +176,7 @@ def main():
             config['hosting']['public'] = str(Path(public_dir).relative_to(build) / 'downloads')
             config_path = build / 'android-release.firebase.json'
             config_path.write_text(json.dumps(config))
-            hosting.firebase(['deploy', '--only', 'hosting', '--project', project, '--config', str(config_path)], firebase_env)
+            hosting.firebase(['deploy', '--only', 'hosting', '--project', project, '--config', str(config_path)], firebase_env, live=True)
         url = 'https://' + site + '.web.app/paylog-sms.apk'
         with urllib.request.urlopen(url, timeout=30) as response:
             if hashlib.sha256(response.read()).hexdigest() != metadata['sha256']:

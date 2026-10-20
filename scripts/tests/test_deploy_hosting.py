@@ -45,6 +45,19 @@ class DeploymentPreflightTest(unittest.TestCase):
         with patch.object(deploy, 'firebase', return_value=[{'projectId': VALID['FIREBASE_PROJECT_ID']}]):
             self.assertEqual(deploy.preflight(env)[:2], (VALID['FIREBASE_PROJECT_ID'], VALID['GOOGLE_WEB_CLIENT_ID']))
 
+    def test_live_deploy_preserves_cli_diagnostics_and_failure(self):
+        for code in [0, 1]:
+            with patch.object(deploy.subprocess, 'run', return_value=SimpleNamespace(returncode=code)) as run:
+                if code:
+                    with self.assertRaisesRegex(RuntimeError, '바로 위 Firebase 오류'):
+                        deploy.firebase(['deploy', '--only', 'hosting'], {}, live=True)
+                else:
+                    deploy.firebase(['deploy', '--only', 'hosting'], {}, live=True)
+                command = run.call_args.args[0]
+                self.assertNotIn('--json', command)
+                self.assertNotIn('--debug', command)
+                self.assertNotIn('capture_output', run.call_args.kwargs)
+
     def test_cli_errors_do_not_echo_credential_bearing_output(self):
         class Response:
             returncode = 1

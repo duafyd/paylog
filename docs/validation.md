@@ -156,3 +156,7 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 본인 Cloud Shell의 영구 서명키를 사용한 **실제 정식 APK 게시와 공개 다운로드 검증은 아직 실행 전**이다. `scripts/release-android.py`가 키를 본인 계정에 보관하고 전용 Hosting 사이트에 APK·공개 인증서 지문·체크섬만 게시한다. 첫 실행 시 본인이 새 서명키 암호를 정하고 암호화된 키 파일을 백업해야 한다. GitHub CI는 서명키 없이 unsigned 릴리스 APK를 검증하며 해당 산출물을 설치용으로 안내하지 않는다. 웹 가이드가 실제 사이트에 표시되려면 웹 Hosting도 다시 배포해야 한다.
 
 사용자는 실제 Google/Sheets 연결이 동작한다고 보고했다. 개발 환경에서 실제 거래 변경·가족 ACL·GAS 운영 배포까지 독립적으로 확인한 것은 아니다. 실기기 테스트는 요청에 따라 제외했고 SMS 수신, 삼성 배터리 제한, iPhone 메시지 자동화·Safari PWA는 계속 미검증이다.
+
+### Hosting 배포 실패 복구
+
+사용자의 Cloud Shell에서 Android 빌드 성공 후 Hosting deploy 실패가 보고됐다. 이후 프로젝트 목록·웹/Android 사이트 목록 조회는 성공했다. 실제 deploy 실패 원인은 아직 확인되지 않았다. `release-android.py --resume`으로 기존 APK·키의 검증을 유지하며 빌드를 생략하고, Firebase deploy의 일반 오류를 본인 터미널에 표시하도록 변경했다. Python 테스트 **15개 통과**(기존 APK 누락/소스 변경 거부 및 CLI 오류 전달 검사 추가). 이 결과는 실제 Hosting 업로드 성공을 의미하지 않는다.
