@@ -6,7 +6,9 @@ import 'package:paylog/features/transactions/transaction.dart';
 import 'package:paylog/features/transactions/transaction_repository.dart';
 
 Future<ProviderContainer> mount(WidgetTester tester,
-    {double width = 390, double scale = 1}) async {
+    {double width = 390,
+    double scale = 1,
+    TransactionRepository? repository}) async {
   tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1;
   tester.platformDispatcher.textScaleFactorTestValue = scale;
@@ -14,6 +16,8 @@ Future<ProviderContainer> mount(WidgetTester tester,
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   final container = ProviderContainer(overrides: [
+    if (repository != null)
+      activeRepositoryProvider.overrideWith((ref) => repository),
     clockProvider.overrideWithValue(() => DateTime(2026, 10, 20, 12))
   ]);
   addTearDown(container.dispose);

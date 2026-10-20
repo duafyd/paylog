@@ -44,6 +44,7 @@ const fs = require('node:fs');
       for(let i=0;i<60;i++) {const value=await page.locator('body').ariaSnapshot();if(value.includes(text))return value;await page.waitForTimeout(100);}
       throw new Error('Missing accessible content: '+text+'\n'+await page.locator('body').ariaSnapshot());
     }
+    async function scroll(delta){await page.mouse.move(200,400);await page.mouse.wheel(0,delta);await page.waitForTimeout(250);}
     async function openConnection() {
       await page.getByRole('tab',{name:'설정',exact:true}).or(page.getByRole('button',{name:'설정',exact:true})).first().click();
       await page.getByRole('button',{name:'Google 연결 검증 열기',exact:true}).click();
@@ -59,6 +60,7 @@ const fs = require('node:fs');
     await content('Sheets 권한 다시 동의');
     await page.getByRole('button',{name:'전용 테스트 시트 생성·쓰기 확인',exact:true}).click();
     await page.getByRole('button',{name:'새 시트 생성·검증',exact:true}).click();
+    await page.mouse.move(200,400);await page.mouse.wheel(0,350);await page.waitForTimeout(250);
     await content('접근 검증 완료');
     assert.deepEqual(methods,['POST','POST','GET']);
     assert.equal(rows[1][3],1000);
@@ -71,20 +73,23 @@ const fs = require('node:fs');
     await page.screenshot({path:path.join(screenshotDir,'google-probe.png')});
     const sheetInput=page.getByRole('textbox',{name:/시트 ID 또는 Google Sheets URL/});
     await sheetInput.click();
+    await page.waitForTimeout(150);
     await sheetInput.fill(sheetId);
     await page.waitForTimeout(200);
     await page.getByRole('button',{name:'기존 시트 읽기 확인',exact:true}).click();
-    await page.mouse.move(200,400);await page.mouse.wheel(0,5000);await page.waitForTimeout(250);
+    await page.mouse.move(200,400);await page.mouse.wheel(0,350);await page.waitForTimeout(250);
     await content('모의 테스트 시트');
     assert.deepEqual(methods.slice(-2),['GET','GET']);
     assert.equal(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}).includes('browser-test-token')),false);
+    await scroll(-5000);
     await page.getByRole('button',{name:'Google 연결 해제',exact:true}).click();
     await content('Google 로그인');
     await page.getByRole('button',{name:'Google 로그인',exact:true}).click();
     await content('browser@example.com');
     await page.evaluate(()=>globalThis.__revokeFails=true);
+    await scroll(-5000);
     await page.getByRole('button',{name:'Google 연결 해제',exact:true}).click();
-    await page.mouse.move(200,400);await page.mouse.wheel(0,5000);await page.waitForTimeout(250);
+    await page.mouse.move(200,400);await page.mouse.wheel(0,600);await page.waitForTimeout(250);
     await content('Google 권한 철회는 확인하지 못했어요.');
     assert.deepEqual(errors,[]);
     console.log('PASS (mock only): GIS JS interop, separate scopes, profile, RAW append/readback, existing sheet GET only, disconnect, no browser token storage');

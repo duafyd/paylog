@@ -4,9 +4,11 @@ const identityScope = 'openid email profile';
 const sheetsScope = 'https://www.googleapis.com/auth/spreadsheets';
 
 class ConnectionFailure implements Exception {
-  const ConnectionFailure(this.message, {this.reauthenticate = false});
+  const ConnectionFailure(this.message,
+      {this.reauthenticate = false, this.uncertainWrite = false});
   final String message;
   final bool reauthenticate;
+  final bool uncertainWrite;
   @override
   String toString() => message;
 }

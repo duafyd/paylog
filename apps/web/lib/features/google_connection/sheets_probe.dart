@@ -82,13 +82,15 @@ class GoogleApi {
         throw const ConnectionFailure('Google 요청 한도를 초과했어요. 잠시 후 다시 시도해 주세요.');
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw const ConnectionFailure(
-          'Google 요청에 실패했어요. 쓰기 요청은 반영됐을 수 있으니 자동 재시도하지 말고 시트를 확인해 주세요.');
+      throw ConnectionFailure(
+          'Google 요청에 실패했어요. 쓰기 요청은 반영됐을 수 있으니 자동 재시도하지 말고 시트를 확인해 주세요.',
+          uncertainWrite: method != 'GET');
     }
     try {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } catch (_) {
-      throw const ConnectionFailure('Google 응답을 해석하지 못했어요.');
+      throw ConnectionFailure('Google 응답을 해석하지 못했어요.',
+          uncertainWrite: method != 'GET');
     }
   }
 }

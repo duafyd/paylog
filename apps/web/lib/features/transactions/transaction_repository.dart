@@ -3,7 +3,14 @@ import 'transaction.dart';
 
 abstract interface class TransactionRepository {
   List<BudgetTransaction> readAll();
-  void add(BudgetTransaction transaction);
+  Future<void> add(BudgetTransaction transaction);
+  Future<void> refresh();
+  List<LedgerMember> get ledgerMembers;
+  LedgerMember? get actor;
+  bool get canWrite;
+  String? get sheetId;
+  String get title;
+  int get excludedCount;
 }
 
 /// Session-only demo store. Replace this provider with a Sheets adapter in Phase 2.
@@ -62,9 +69,24 @@ class InMemoryTransactionRepository implements TransactionRepository {
         ];
   final List<BudgetTransaction> _items;
   @override
+  Future<void> refresh() async {}
+  @override
+  List<LedgerMember> get ledgerMembers =>
+      members.map((m) => LedgerMember(id: m, name: m)).toList();
+  @override
+  LedgerMember? get actor => null;
+  @override
+  bool get canWrite => true;
+  @override
+  String? get sheetId => null;
+  @override
+  String get title => '샘플 가계부';
+  @override
+  int get excludedCount => 0;
+  @override
   List<BudgetTransaction> readAll() => List.unmodifiable(_items);
   @override
-  void add(BudgetTransaction transaction) {
+  Future<void> add(BudgetTransaction transaction) async {
     if (transaction.amount <= 0 || transaction.amount > 999999999999) {
       throw ArgumentError('금액 범위를 확인해 주세요.');
     }
@@ -75,21 +97,50 @@ class InMemoryTransactionRepository implements TransactionRepository {
   }
 }
 
-final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
-final transactionRepositoryProvider = Provider<TransactionRepository>(
+final clockProvider =
+    Provider<DateTime Function()>((ref) => () => seoulTime(DateTime.now()));
+final demoRepositoryProvider = Provider<TransactionRepository>(
     (ref) => InMemoryTransactionRepository(ref.read(clockProvider)()));
+final activeRepositoryProvider =
+    StateProvider<TransactionRepository?>((ref) => null);
+final transactionRepositoryProvider = Provider<TransactionRepository>((ref) =>
+    ref.watch(activeRepositoryProvider) ?? ref.watch(demoRepositoryProvider));
+final ledgerMembersProvider = Provider<List<LedgerMember>>((ref) {
+  ref.watch(transactionsProvider);
+  return ref.watch(transactionRepositoryProvider).ledgerMembers;
+});
 final transactionsProvider =
     NotifierProvider<TransactionsController, List<BudgetTransaction>>(
         TransactionsController.new);
 
 class TransactionsController extends Notifier<List<BudgetTransaction>> {
+  int _generation = 0;
+  bool _saving = false;
   @override
-  List<BudgetTransaction> build() =>
-      ref.watch(transactionRepositoryProvider).readAll();
-  void add(BudgetTransaction transaction) {
+  List<BudgetTransaction> build() {
+    _generation++;
+    ref.onDispose(() => _generation++);
+    return ref.watch(transactionRepositoryProvider).readAll();
+  }
+
+  Future<void> add(BudgetTransaction transaction) async {
+    if (_saving) throw StateError('저장 중입니다.');
+    _saving = true;
+    final generation = _generation;
     final repository = ref.read(transactionRepositoryProvider);
-    repository.add(transaction);
-    state = repository.readAll();
+    try {
+      await repository.add(transaction);
+      if (_generation == generation) state = repository.readAll();
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> refresh() async {
+    final generation = _generation;
+    final repository = ref.read(transactionRepositoryProvider);
+    await repository.refresh();
+    if (_generation == generation) state = repository.readAll();
   }
 }
 

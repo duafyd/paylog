@@ -30,3 +30,10 @@ Flutter Web + Riverpod + go_router의 모바일 우선 가계부를 샘플 데�
 `features/google_connection/`에 GIS JS interop 포트, 세션 컨트롤러, 고정 Google API transport와 SheetsProbe를 분리했다. 설정 화면에서 `/google-connection`으로 이동한다. identity scope와 Sheets scope를 분리하고 userinfo의 subject를 비교하며 토큰은 메모리에만 보관한다. 프로필·오류·로딩·결과를 Riverpod ChangeNotifierProvider로 제공한다.
 
 실제 가계부 Repository는 여전히 InMemory다. 기존 시트는 읽기·스키마 검사만 하고 쓰기는 새 테스트 시트에 명시적 동의 후 진행한다. 이 PoC의 테스트 행은 Members UUID 대신 Google subject를 임시 사용하므로 운영 원장으로 자동 전환하지 않는다. [설정 가이드](setup-google.md)의 실제 계정/실기기 체크리스트를 완료한 후 원장 어댑터를 구현한다.
+
+
+## Sheets 원장 어댑터 추가
+
+`features/ledger`에 캐시를 가진 비동기 `SheetsLedgerRepository`, 원장 세션과 연결/상태 UI를 추가했다. 기존 Repository 계약은 캐시 읽기 + 비동기 추가·새로고침으로 확장했다. 샘플 저장소와 활성 Sheets 저장소는 분리하며, 검증이 끝난 스냅샷만 교체한다. 계정 변경·로그아웃 시 표시 원장을 비우고 이전 비동기 응답이 다른 원장 화면을 덮지 않도록 세대를 확인한다.
+
+Members UUID와 계정 subject를 매핑하고 표시 이름은 레이블로만 사용한다. 실제 공유 권한은 Google에 남긴다. 수동 등록은 입력 UUID를 유지하고 RAW append 뒤 재조회가 확인된 경우에만 성공한다. 응답 불명 상태에서는 같은 UUID의 GET 재확인만 허용하며 자동 재전송하지 않는다. Members 가입 UI·Categories UUID·수정/삭제·엄격한 동시성 보장은 후속이다. 상세 계약은 [Sheets 원장 가이드](sheets-ledger.md)에 기록한다.

@@ -42,6 +42,7 @@ class BudgetTransaction {
       required this.merchant,
       required this.categoryId,
       required this.member,
+      this.memberId = '',
       this.memo = '',
       this.paymentMethod = '카드'});
   final String id;
@@ -51,6 +52,7 @@ class BudgetTransaction {
   final String merchant;
   final String categoryId;
   final String member;
+  final String memberId;
   final String memo;
   final String paymentMethod;
   BudgetCategory get category =>
@@ -64,3 +66,35 @@ bool sameMonth(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month;
 int totalOf(Iterable<BudgetTransaction> items, TransactionType type) =>
     items.where((t) => t.type == type).fold(0, (sum, t) => sum + t.amount);
+
+class LedgerMember {
+  const LedgerMember(
+      {required this.id,
+      required this.name,
+      this.subject = '',
+      this.email = '',
+      this.role = 'editor',
+      this.active = true});
+  final String id;
+  final String name;
+  final String subject;
+  final String email;
+  final String role;
+  final bool active;
+}
+
+DateTime seoulTime(DateTime instant) {
+  final d = instant.toUtc().add(const Duration(hours: 9));
+  return DateTime(
+      d.year, d.month, d.day, d.hour, d.minute, d.second, d.millisecond);
+}
+
+String seoulIso(DateTime wallTime) =>
+    '${DateTime.utc(wallTime.year, wallTime.month, wallTime.day, wallTime.hour, wallTime.minute, wallTime.second, wallTime.millisecond).toIso8601String().replaceFirst('Z', '')}+09:00';
+String transactionMemberKey(BudgetTransaction t) =>
+    t.memberId.isEmpty ? t.member : t.memberId;
+
+String memberLabel(LedgerMember member, List<LedgerMember> people) {
+  if (people.where((m) => m.name == member.name).length < 2) return member.name;
+  return '${member.name} · ${member.email.isNotEmpty ? member.email : member.id.substring(0, 6)}';
+}

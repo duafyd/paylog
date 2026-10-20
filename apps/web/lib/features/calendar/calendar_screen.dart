@@ -7,6 +7,7 @@ import '../transactions/transaction.dart';
 import '../transactions/transaction_repository.dart';
 import '../transactions/transaction_tile.dart';
 import 'calendar_card.dart';
+import '../ledger/ledger_widgets.dart';
 import 'month_selector.dart';
 import 'summary_card.dart';
 
@@ -14,6 +15,7 @@ class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final people = ref.watch(ledgerMembersProvider);
     final items = ref.watch(monthlyTransactionsProvider);
     final selected = ref.watch(selectedDayProvider);
     final daily = items.where((t) => sameDay(t.occurredAt, selected)).toList();
@@ -26,6 +28,7 @@ class CalendarScreen extends ConsumerWidget {
               style: TextStyle(color: AppColors.muted, fontSize: 13)),
           const SizedBox(height: 4),
           const MonthSelector(),
+          const LedgerStatus(),
           const SizedBox(height: 20),
           SummaryGrid(
               expense: expense,
@@ -60,7 +63,7 @@ class CalendarScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               const SectionHeader('함께 기록한 지출'),
               const SizedBox(height: 12),
-              ...members.map((member) => Padding(
+              ...people.map((member) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: BentoCard(
                       padding: const EdgeInsets.all(16),
@@ -68,14 +71,15 @@ class CalendarScreen extends ConsumerWidget {
                         CircleAvatar(
                             radius: 18,
                             backgroundColor: AppColors.tealSoft,
-                            child: Text(member.substring(0, 1),
+                            child: Text(member.name.substring(0, 1),
                                 style: const TextStyle(color: AppColors.teal))),
                         const SizedBox(width: 12),
-                        Expanded(child: Text(member)),
+                        Expanded(child: Text(memberLabel(member, people))),
                         Flexible(
                             child: Text(
                                 won(totalOf(
-                                    items.where((t) => t.member == member),
+                                    items.where((t) =>
+                                        transactionMemberKey(t) == member.id),
                                     TransactionType.expense)),
                                 style: AppTheme.numberStyle
                                     .copyWith(fontWeight: FontWeight.w700))),

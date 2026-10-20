@@ -7,6 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
 import 'transaction.dart';
 import 'transaction_repository.dart';
+import '../google_connection/google_oauth.dart';
+import '../google_connection/google_connection.dart';
 
 class TransactionForm extends ConsumerStatefulWidget {
   const TransactionForm({super.key});
@@ -25,9 +27,20 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
   String _payment = paymentMethods.first;
   late DateTime _date;
   bool _saving = false;
+  bool _uncertain = false;
+  String? _saveError;
+  final _draftId = const Uuid().v4();
+  BudgetTransaction? _pending;
+  late TransactionRepository _boundRepository;
+  bool get _locked => _saving || _uncertain || !_boundRepository.canWrite;
   @override
   void initState() {
     super.initState();
+    _boundRepository = ref.read(transactionRepositoryProvider);
+    final choices =
+        _boundRepository.ledgerMembers.where((m) => m.active).toList();
+    _member =
+        _boundRepository.actor?.id ?? (choices.isEmpty ? '' : choices.first.id);
     final selected = ref.read(selectedDayProvider);
     final now = ref.read(clockProvider)();
     _date = DateTime(
@@ -61,36 +74,68 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
         _date.year, _date.month, _date.day, picked.hour, picked.minute));
   }
 
-  void _save() {
-    if (_saving || !_form.currentState!.validate()) return;
-    setState(() => _saving = true);
+  Future<void> _save() async {
+    if (_saving ||
+        (!_boundRepository.canWrite && !_uncertain) ||
+        (!_uncertain && !_form.currentState!.validate())) {
+      return;
+    }
+    final repository = _boundRepository;
+    if (!identical(repository, ref.read(transactionRepositoryProvider))) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    final person = repository.ledgerMembers.firstWhere((m) => m.id == _member);
+    _pending ??= BudgetTransaction(
+        id: _draftId,
+        type: _type,
+        amount: int.parse(_amount.text),
+        occurredAt: _date,
+        merchant: _merchant.text.trim(),
+        memo: _memo.text.trim(),
+        categoryId: _category,
+        member: person.name,
+        memberId: person.id,
+        paymentMethod: _payment);
+    setState(() {
+      _saving = true;
+      _saveError = null;
+    });
     try {
-      ref.read(transactionsProvider.notifier).add(BudgetTransaction(
-            id: const Uuid().v4(),
-            type: _type,
-            amount: int.parse(_amount.text),
-            occurredAt: _date,
-            merchant: _merchant.text.trim(),
-            memo: _memo.text.trim(),
-            categoryId: _category,
-            member: _member,
-            paymentMethod: _payment,
-          ));
+      await ref.read(transactionsProvider.notifier).add(_pending!);
+      if (!mounted ||
+          !identical(repository, ref.read(transactionRepositoryProvider))) {
+        return;
+      }
       ref.read(visibleMonthProvider.notifier).state =
           DateTime(_date.year, _date.month);
       ref.read(selectedDayProvider.notifier).state = _date;
-      final messenger = ScaffoldMessenger.of(context);
+      final message = repository.sheetId == null
+          ? '거래를 저장했어요. 이 세션에서만 유지됩니다.'
+          : '거래를 저장했어요. Sheets 재조회까지 확인했습니다.';
       context.go('/');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (messenger.mounted) {
-          messenger.showSnackBar(
-              const SnackBar(content: Text('거래를 저장했어요. 이 세션에서만 유지됩니다.')));
+          messenger.showSnackBar(SnackBar(content: Text(message)));
         }
       });
-    } catch (_) {
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('저장하지 못했어요. 입력을 확인하고 다시 시도해 주세요.')));
+    } catch (failure) {
+      final message = failure is ConnectionFailure
+          ? failure.message
+          : '저장하지 못했어요. 입력을 확인하고 다시 시도해 주세요.';
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _saveError = message;
+          _uncertain = failure is ConnectionFailure && failure.uncertainWrite;
+          if (!_uncertain) _pending = null;
+        });
+        if (failure is ConnectionFailure && failure.reauthenticate) {
+          ref.read(googleConnectionProvider).invalidateSession();
+        }
+      }
+      if (messenger.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(message)));
+      }
     }
   }
 
@@ -106,6 +151,11 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
           const SizedBox(height: 6),
           const Text('오늘의 소비도, 반가운 수입도.',
               style: TextStyle(color: AppColors.muted)),
+          if (!_boundRepository.canWrite)
+            const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child:
+                    Text('조회 전용 원장이에요. Google 공유 권한과 활성 Members 연결을 확인해 주세요.')),
           const SizedBox(height: 24),
           SegmentedButton<TransactionType>(
               segments: const [
@@ -121,11 +171,13 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
               selected: {
                 _type
               },
-              onSelectionChanged: (values) => setState(() {
-                    _type = values.first;
-                    _category =
-                        categories.firstWhere((c) => c.type == _type).id;
-                  })),
+              onSelectionChanged: _locked
+                  ? null
+                  : (values) => setState(() {
+                        _type = values.first;
+                        _category =
+                            categories.firstWhere((c) => c.type == _type).id;
+                      })),
           const SizedBox(height: 20),
           BentoCard(
               child: Column(
@@ -136,6 +188,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                 TextFormField(
                     key: const ValueKey('amount'),
                     controller: _amount,
+                    enabled: !_locked,
                     style: AppTheme.numberStyle
                         .copyWith(fontSize: 32, fontWeight: FontWeight.w700),
                     keyboardType: TextInputType.number,
@@ -165,6 +218,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                 TextFormField(
                     key: const ValueKey('merchant'),
                     controller: _merchant,
+                    enabled: !_locked,
                     maxLength: 60,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
@@ -177,12 +231,12 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                 const SizedBox(height: 12),
                 Wrap(spacing: 8, runSpacing: 8, children: [
                   OutlinedButton.icon(
-                      onPressed: _pickDate,
+                      onPressed: _locked ? null : _pickDate,
                       icon: const Icon(Icons.calendar_today_outlined, size: 18),
                       label: Text(
                           '${_date.year}.${_date.month.toString().padLeft(2, '0')}.${_date.day.toString().padLeft(2, '0')}')),
                   OutlinedButton.icon(
-                      onPressed: _pickTime,
+                      onPressed: _locked ? null : _pickTime,
                       icon: const Icon(Icons.schedule, size: 18),
                       label: Text(
                           '${_date.hour.toString().padLeft(2, '0')}:${_date.minute.toString().padLeft(2, '0')}')),
@@ -191,12 +245,17 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                 const Text('기록한 사람', style: TextStyle(color: AppColors.muted)),
                 Wrap(
                     spacing: 8,
-                    children: members
+                    children: _boundRepository.ledgerMembers
+                        .where((m) => m.active)
                         .map((member) => ChoiceChip(
-                            label: Text(member),
-                            selected: member == _member,
-                            onSelected: (_) =>
-                                setState(() => _member = member)))
+                            label: Text(
+                                memberLabel(
+                                    member, _boundRepository.ledgerMembers),
+                                overflow: TextOverflow.ellipsis),
+                            selected: member.id == _member,
+                            onSelected: _locked
+                                ? null
+                                : (_) => setState(() => _member = member.id)))
                         .toList()),
                 const SizedBox(height: 16),
                 const Text('결제수단', style: TextStyle(color: AppColors.muted)),
@@ -206,8 +265,9 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                         .map((method) => ChoiceChip(
                             label: Text(method),
                             selected: method == _payment,
-                            onSelected: (_) =>
-                                setState(() => _payment = method)))
+                            onSelected: _locked
+                                ? null
+                                : (_) => setState(() => _payment = method)))
                         .toList()),
               ])),
           const SizedBox(height: 16),
@@ -228,26 +288,45 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                                   child: CategoryTile(
                                       category: c,
                                       selected: c.id == _category,
-                                      onTap: () =>
-                                          setState(() => _category = c.id)),
+                                      onTap: _locked
+                                          ? null
+                                          : () =>
+                                              setState(() => _category = c.id)),
                                 ))
                             .toList())),
               ])),
           const SizedBox(height: 16),
           TextFormField(
               controller: _memo,
+              enabled: !_locked,
               maxLines: 3,
               maxLength: 200,
               decoration: const InputDecoration(
                   labelText: '메모 (선택)', alignLabelWithHint: true)),
           const SizedBox(height: 16),
+          if (_saveError != null)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Semantics(
+                    liveRegion: true,
+                    child: Text(_saveError!,
+                        style: const TextStyle(color: AppColors.expense)))),
           FilledButton.icon(
               key: const ValueKey('save'),
-              onPressed: _saving ? null : _save,
+              onPressed: _saving || (!_boundRepository.canWrite && !_uncertain)
+                  ? null
+                  : _save,
               icon: const Icon(Icons.check),
-              label: Text(_saving ? '저장 중…' : '기록 저장하기')),
+              label: Text(_saving
+                  ? '저장 중…'
+                  : _uncertain
+                      ? '저장 결과 다시 확인'
+                      : '기록 저장하기')),
           TextButton(onPressed: () => context.go('/'), child: const Text('취소')),
-          const Text('샘플 모드 · 새로고침하면 추가한 기록이 초기화됩니다.',
+          Text(
+              _boundRepository.sheetId == null
+                  ? '샘플 모드 · 새로고침하면 추가한 기록이 초기화됩니다.'
+                  : 'Sheets 모드 · 새로고침 후 로그인하고 같은 시트를 다시 연결하세요.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.muted)),
         ]),
@@ -262,7 +341,7 @@ class CategoryTile extends StatelessWidget {
       required this.onTap});
   final BudgetCategory category;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Semantics(
         selected: selected,
