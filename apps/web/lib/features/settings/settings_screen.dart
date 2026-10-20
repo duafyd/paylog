@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../transactions/transaction_repository.dart';
+import '../export/ledger_export.dart';
+import '../export/download.dart';
 import '../ledger/ledger_widgets.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
@@ -29,6 +31,11 @@ class SettingsScreen extends ConsumerWidget {
                     Text(
                         '눈이와 딘이의 가상 거래로 화면을 둘러볼 수 있어요. 추가한 기록은 현재 세션에만 보관되고 새로고침하면 초기화됩니다.'),
                   ])),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+            onPressed: () => context.go('/management'),
+            icon: const Icon(Icons.manage_accounts_outlined),
+            label: const Text('멤버·카드·카테고리·기기·검토함 관리')),
         const SizedBox(height: 16),
         FilledButton.icon(
             onPressed: () => context.go('/google-connection'),
@@ -65,6 +72,12 @@ class SettingsScreen extends ConsumerWidget {
           Text(
               'Android Chrome: 메뉴 → 홈 화면에 추가\n\niPhone Safari: 공유 → 홈 화면에 추가\n\nHTTPS 배포 후 사용할 수 있어요. 현재 단계는 온라인 실행 기준이며 오프라인 저장·동기화는 지원하지 않습니다.'),
         ])),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+            onPressed: () =>
+                downloadCsv(ledgerCsv(ref.read(transactionsProvider))),
+            icon: const Icon(Icons.download_outlined),
+            label: const Text('현재 원장 CSV 내보내기')),
         const SizedBox(height: 24),
         const Text('paylog 0.1.0 · Phase 1',
             textAlign: TextAlign.center,

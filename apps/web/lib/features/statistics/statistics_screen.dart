@@ -26,7 +26,9 @@ class StatisticsScreen extends ConsumerWidget {
         const SectionHeader('어디에 사용했을까요?'),
         const SizedBox(height: 20),
         if (expense == 0) const EmptyState(message: '이번 달에는 아직 지출이 없어요.'),
-        ...categories
+        ...ref
+            .watch(transactionRepositoryProvider)
+            .categoryCatalog
             .where((c) => c.type == TransactionType.expense)
             .map((category) {
           final amount = totalOf(

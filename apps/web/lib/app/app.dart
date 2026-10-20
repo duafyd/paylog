@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import '../features/calendar/calendar_screen.dart';
 import '../features/transactions/transaction_form.dart';
+import '../features/transactions/transaction_detail.dart';
+import '../features/ledger/management_screen.dart';
 import '../features/statistics/statistics_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/google_connection/google_connection_screen.dart';
@@ -16,6 +18,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state, child) =>
           AppShell(path: state.uri.path, child: child),
       routes: [
+        GoRoute(
+            path: '/transaction/:id',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => TransactionDetail(
+                    key: ObjectKey(ref.watch(transactionRepositoryProvider)),
+                    id: state.pathParameters['id']!))),
+        GoRoute(
+            path: '/edit/:id',
+            builder: (context, state) => Consumer(builder: (context, ref, _) {
+                  final found = ref
+                      .read(transactionsProvider)
+                      .where((t) => t.id == state.pathParameters['id']);
+                  return found.isEmpty
+                      ? const Center(child: Text('거래를 찾을 수 없어요.'))
+                      : TransactionForm(
+                          key: ObjectKey(
+                              ref.watch(transactionRepositoryProvider)),
+                          initial: found.first);
+                })),
         GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
         GoRoute(
             path: '/statistics',
@@ -28,6 +49,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         GoRoute(
             path: '/google-connection',
             builder: (context, state) => const GoogleConnectionScreen()),
+        GoRoute(
+            path: '/management',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => ManagementScreen(
+                    key: ObjectKey(ref.watch(transactionRepositoryProvider))))),
         GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen()),

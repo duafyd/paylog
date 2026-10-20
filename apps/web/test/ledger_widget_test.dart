@@ -7,7 +7,7 @@ import 'package:paylog/features/transactions/transaction.dart';
 import 'package:paylog/features/transactions/transaction_repository.dart';
 import 'widget_test.dart' show mount, reveal;
 
-class WidgetLedger implements TransactionRepository {
+class WidgetLedger extends TransactionRepository {
   WidgetLedger({this.canWrite = true});
   @override
   final bool canWrite;

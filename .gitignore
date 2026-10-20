@@ -10,3 +10,9 @@
 .env.*
 !.env.example
 .DS_Store
+# Android local configuration and caches
+**/local.properties
+**/.gradle/
+**/.kotlin/
+*.jks
+*.keystore

@@ -86,6 +86,15 @@ class LedgerSession extends Notifier<LedgerSessionState> {
           ref.read(activeRepositoryProvider.notifier).state = repository;
         }
       });
+  Future<void> join(String name) => _run(() async {
+        final repository = ref.read(activeRepositoryProvider);
+        final profile = ref.read(googleConnectionProvider).profile;
+        if (repository is! SheetsLedgerRepository || profile == null) {
+          throw const ConnectionFailure('먼저 공유 원장을 연결해 주세요.');
+        }
+        await repository.join(email: profile.email, name: name);
+        await ref.read(transactionsProvider.notifier).refresh();
+      });
   Future<void> refresh() =>
       _run(() => ref.read(transactionsProvider.notifier).refresh());
   void useSample() {

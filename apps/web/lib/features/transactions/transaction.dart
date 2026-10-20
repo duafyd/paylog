@@ -4,7 +4,10 @@ import 'package:intl/intl.dart';
 enum TransactionType { expense, income }
 
 class BudgetCategory {
-  const BudgetCategory(this.id, this.label, this.icon, this.type);
+  const BudgetCategory(this.id, this.label, this.icon, this.type,
+      {this.enabled = true, this.sortOrder = 0});
+  final int sortOrder;
+  final bool enabled;
   final String id;
   final String label;
   final IconData icon;
@@ -44,7 +47,9 @@ class BudgetTransaction {
       required this.member,
       this.memberId = '',
       this.memo = '',
-      this.paymentMethod = '카드'});
+      this.paymentMethod = '카드',
+      this.revision = '',
+      this.categoryDefinition});
   final String id;
   final TransactionType type;
   final int amount;
@@ -55,8 +60,10 @@ class BudgetTransaction {
   final String memberId;
   final String memo;
   final String paymentMethod;
+  final String revision;
+  final BudgetCategory? categoryDefinition;
   BudgetCategory get category =>
-      categories.firstWhere((c) => c.id == categoryId);
+      categoryDefinition ?? categories.firstWhere((c) => c.id == categoryId);
 }
 
 String won(int amount) => '₩${NumberFormat('#,###').format(amount)}';

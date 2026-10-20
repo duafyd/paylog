@@ -1,9 +1,10 @@
 # paylog
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·수동 등록·통계가 해당 시트를 사용합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
+가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·거래 등록/수정/삭제·통계가 해당 시트를 사용합니다. 소유자 관리 화면, SMS 수집 GAS, Android 보조 앱과 iOS 설정 가이드도 포함합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)
+- [SMS/GAS 운영 설정](docs/sms-setup.md) · [Android 앱](apps/sms_android/README.md) · [iOS 단축어](ios/README.md) · [배포/CI](docs/deployment.md)
 - [아키텍처](docs/architecture.md) · [검증 결과](docs/validation.md)
 
 ## 실행
@@ -33,7 +34,22 @@ flutter build web --release --no-web-resources-cdn
 python3 -m http.server 8080 --directory build/web
 ```
 
-전체 검증은 저장소 루트에서 `bash scripts/check.sh`로 실행할 수도 있습니다.
+웹 전체 검증은 저장소 루트에서 `bash scripts/check.sh`로 실행할 수도 있습니다. 추가 서버/Android 검증:
+
+```sh
+node --test services/sms/test/*.test.js
+node services/sms/build.mjs
+# JDK 21 + SDK 36 + Gradle 8.13
+bash scripts/check-android.sh
+# 빌드된 웹의 Hosting 설정만 로컬 검증 (실제 배포 없음)
+npx firebase-tools@14.22.0 emulators:exec --only hosting --project demo-paylog 'node scripts/hosting-smoke.cjs'
+```
+
+거래를 눌러 상세→수정/삭제를 사용할 수 있다. CSV 내보내기는 설정 화면에서 제공하며 스프레드시트 수식 주입 문자를 무력화한다. 삭제는 Sheets `deletedAt`을 기록하여 합계에서 제외한다. 설정→가계부 관리에서는 실제 연결된 원장의 활성 소유자만 멤버·카드·카테고리·기기·검토함을 관리한다. SMS 관리 탭은 소유자의 GAS 설정 함수로 먼저 준비한다. 샘플 모드에는 관리 데이터가 없다.
+
+가족은 소유자가 Google Sheets 공유 메뉴에서 먼저 편집자로 초대한 뒤 원장을 연결하고 표시 이름으로 참여한다. 앱 역할 변경은 Google 공유 ACL을 변경하지 않는다. 비활성 계정 재참여는 차단하며 마지막 활성 소유자는 해제할 수 없다. 사용자 정의 카테고리는 UUID로 참조하고 비활성화해도 과거 거래에서 유지한다. 상세 운영 절차는 위 문서를 따른다.
+
+`.github/workflows/verify.yml`은 웹·SMS·Android 검사와 산출물 보관을 구성한다. 실제 Hosting/GAS 배포는 계정·프로젝트 설정이 필요하다. 실제 기기 검증은 이번 작업에서 제외했다. Apple 서명 `.shortcut`은 이 Linux 환경에서 생성하지 못해 JSON 구성도와 수동 설정 가이드를 제공한다.
 
 추가 브라우저 smoke test는 정적 서버를 실행한 상태에서 별도로 실행할 수 있습니다. Node.js와 Chromium이 필요하며, Playwright는 앱 의존성과 분리해 설치합니다.
 

@@ -1,0 +1,63 @@
+name: Verify paylog
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  web-and-sms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Flutter
+        run: |
+          git clone --filter=blob:none --branch 3.47.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = abaf9c523780a608bd46686fd5e53740a07077f8
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: bash scripts/check.sh
+      - run: node --test services/sms/test/*.test.js
+      - run: node services/sms/build.mjs && git diff --exit-code -- services/sms/gas/Code.gs
+      - name: Hosting emulator configuration
+        run: npx --yes firebase-tools@14.22.0 emulators:exec --only hosting --project demo-paylog 'node scripts/hosting-smoke.cjs'
+      - name: Chromium integration tests (Google requests mocked)
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save playwright@1.62.1
+          export NODE_PATH="$RUNNER_TEMP/browser-tools/node_modules"
+          export CHROMIUM_PATH="$(command -v google-chrome)"
+          python3 -m http.server 8080 --directory apps/web/build/web > /tmp/web-server.log 2>&1 &
+          WEB_PID=$!
+          trap 'kill "$WEB_PID" "${MOCK_PID:-}" 2>/dev/null || true' EXIT
+          node scripts/browser-smoke.cjs
+          cd apps/web
+          flutter build web --release --no-web-resources-cdn --dart-define=GOOGLE_WEB_CLIENT_ID=browser-test.apps.googleusercontent.com --output=build/google-poc
+          cd ../..
+          python3 -m http.server 8081 --directory apps/web/build/google-poc > /tmp/mock-server.log 2>&1 &
+          MOCK_PID=$!
+          node scripts/google-connection-smoke.cjs
+          node scripts/sheets-ledger-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paylog-web
+          path: apps/web/build/web
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - run: gradle -p apps/sms_android testDebugUnitTest lintDebug assembleDebug --no-daemon --max-workers=4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paylog-sms-debug
+          path: apps/sms_android/app/build/outputs/apk/debug/*.apk

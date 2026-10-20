@@ -1,3 +1,35 @@
+# 최신 검증 결과 (2026-10-20 UTC)
+
+`feat/complete-budget-workflows`의 현재 구현 기준이다. 아래 이전 단계 기록은 당시 결과이며 현재 기능 목록은 이 절과 README를 우선한다.
+
+| 검사 | 결과 |
+|---|---|
+| Flutter 포맷·정적 분석 | 통과, No issues found |
+| Flutter 단위·위젯 | 60개 통과 |
+| 기본/모의 OAuth ID 웹 릴리스 빌드 | 성공 |
+| Chromium 샘플 브라우저 | 수입·지출 등록/수정/삭제, 통계, 세션 초기화 통과 |
+| Chromium Google 연결 모의 검사 | 분리 동의·RAW·연결 해제·토큰 미저장 통과 |
+| Chromium Sheets 원장 모의 검사 | 원장 생성/연결·UUID·응답 단절/GET 재확인·Viewer UI·로그아웃 통과 |
+| SMS/GAS Node 테스트 | 12개 통과, 생성물 일치 포함 |
+| Android JVM 테스트 | 1개 통과, endpoint/redirect allowlist의 여러 허용·거부 사례 |
+| Android debug APK / Lint | 빌드 성공, Lint 통과 |
+| Firebase Hosting 에뮬레이터 | SPA rewrite·보안/캐시 헤더·manifest 통과 |
+| 실제 Google OAuth/CORS/공유 ACL | 미실행: 웹 클라이언트 ID·사용자 계정 설정 없음 |
+| 실제 GAS 배포/HTTP 리다이렉트/Hosting 배포 | 미실행: 사용자 GAS 배포·Firebase 프로젝트/계정 설정 없음 |
+| Galaxy S25 / iPhone 16 Pro 실기기 | 사용자 요청에 따라 제외 |
+
+추가 Flutter 테스트는 UUID 행 이동 후 수정, 행 해시 충돌, 감사·SMS 출처 보존, 소프트 삭제, 수정/삭제 응답 단절 후 GET만 재확인, 불명확한 미반영 쓰기 재전송 금지, Google 403, 마지막 소유자 보호, 가족 참여 계정 바인딩·재참여 차단, 사용자 정의/비활성 카테고리, 관리 RAW 쓰기·충돌·기기 해시 보존·검토 처리, CSV 수식 주입 방지와 UI 수정/삭제를 다룬다.
+
+SMS 테스트는 상세형/일반형, 누적금액 제외, 연말 연도 추론/불가능 날짜, 토큰 철회, 발신자/카드 필터, 멤버 간 마스킹 충돌, 카드 소유자 귀속, 중복/동일 금액 별도 거래, 취소/검토, ID 없는 메시지, 길이 제한, 거래/취소 마커 저장 후 응답 유실 복구를 확인한다. Apps Script 어댑터는 모의 UrlFetchApp/Sheets로 검증했다. 실제 Google 실행을 뜻하지 않는다.
+
+Android에는 Keystore 암호화 큐·WorkManager·수신기가 구현되어 있으나 실제 SMS/키 저장소/백그라운드 실행은 테스트하지 않았다. iOS는 설정 가이드와 JSON 구성도이며 Apple 서명된 `.shortcut` 파일은 제공하지 않는다. Linux에서 해당 서명 도구를 사용할 수 없다. 자동 SMS 수집의 완성 또는 플랫폼 호환성을 단정하지 않는다.
+
+Sheets의 변경 전 행 해시 확인은 최선 노력이다. 읽기와 쓰기 사이 경쟁, 브라우저와 GAS의 공동 트랜잭션 부재, 세션 종료 후 불명확한 웹 쓰기 기억 소실은 남아 있다. 관리 쓰기가 불명확하면 시트를 확인하고 목록을 다시 읽어야 한다. 오프라인 금융 데이터 저장·자동 동기화는 제공하지 않는다.
+
+재현 명령은 README, Android README, [SMS 설정](sms-setup.md), [배포 안내](deployment.md)에 있다.
+
+---
+
 # Phase 1 검증 보고서
 
 검증일: 2026-10-20 (KST). 대상: `feat/phase-1-flutter-web`.

@@ -1,7 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'transaction.dart';
 
-abstract interface class TransactionRepository {
+abstract class TransactionRepository {
+  List<BudgetCategory> get categoryCatalog => categories;
+  Future<void> update(BudgetTransaction transaction) =>
+      throw UnsupportedError("수정을 지원하지 않습니다.");
+  Future<void> delete(BudgetTransaction transaction) =>
+      throw UnsupportedError("삭제를 지원하지 않습니다.");
   List<BudgetTransaction> readAll();
   Future<void> add(BudgetTransaction transaction);
   Future<void> refresh();
@@ -14,7 +19,7 @@ abstract interface class TransactionRepository {
 }
 
 /// Session-only demo store. Replace this provider with a Sheets adapter in Phase 2.
-class InMemoryTransactionRepository implements TransactionRepository {
+class InMemoryTransactionRepository extends TransactionRepository {
   InMemoryTransactionRepository(DateTime now)
       : _items = [
           BudgetTransaction(
@@ -86,6 +91,21 @@ class InMemoryTransactionRepository implements TransactionRepository {
   @override
   List<BudgetTransaction> readAll() => List.unmodifiable(_items);
   @override
+  Future<void> update(BudgetTransaction transaction) async {
+    final index = _items.indexWhere((t) => t.id == transaction.id);
+    if (index < 0) throw StateError('이미 삭제된 거래입니다.');
+    if (transaction.amount <= 0 || transaction.amount > 999999999999) {
+      throw ArgumentError('금액 범위를 확인해 주세요.');
+    }
+    _items[index] = transaction;
+  }
+
+  @override
+  Future<void> delete(BudgetTransaction transaction) async {
+    _items.removeWhere((t) => t.id == transaction.id);
+  }
+
+  @override
   Future<void> add(BudgetTransaction transaction) async {
     if (transaction.amount <= 0 || transaction.amount > 999999999999) {
       throw ArgumentError('금액 범위를 확인해 주세요.');
@@ -123,13 +143,20 @@ class TransactionsController extends Notifier<List<BudgetTransaction>> {
     return ref.watch(transactionRepositoryProvider).readAll();
   }
 
-  Future<void> add(BudgetTransaction transaction) async {
+  Future<void> add(BudgetTransaction transaction) =>
+      _mutate((r) => r.add(transaction));
+  Future<void> update(BudgetTransaction transaction) =>
+      _mutate((r) => r.update(transaction));
+  Future<void> delete(BudgetTransaction transaction) =>
+      _mutate((r) => r.delete(transaction));
+  Future<void> _mutate(
+      Future<void> Function(TransactionRepository) action) async {
     if (_saving) throw StateError('저장 중입니다.');
     _saving = true;
     final generation = _generation;
     final repository = ref.read(transactionRepositoryProvider);
     try {
-      await repository.add(transaction);
+      await action(repository);
       if (_generation == generation) state = repository.readAll();
     } finally {
       _saving = false;

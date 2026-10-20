@@ -62,9 +62,11 @@ class LedgerConnectionPanel extends ConsumerStatefulWidget {
 
 class _LedgerConnectionPanelState extends ConsumerState<LedgerConnectionPanel> {
   final _id = TextEditingController();
+  final _name = TextEditingController();
   @override
   void dispose() {
     _id.dispose();
+    _name.dispose();
     super.dispose();
   }
 
@@ -122,6 +124,20 @@ class _LedgerConnectionPanelState extends ConsumerState<LedgerConnectionPanel> {
       if (repository.sheetId != null) ...[
         const SizedBox(height: 8),
         Text('연결됨 · ${repository.title}'),
+        const Text(
+            '가족 초대: 소유자가 위 Google Sheets 공유 메뉴에서 가족 이메일에 편집 권한을 부여하세요. 앱의 멤버 역할은 Google 공유 권한을 부여하지 않습니다.'),
+        if (repository.actor == null) ...[
+          TextField(
+              controller: _name,
+              maxLength: 60,
+              decoration: const InputDecoration(labelText: '가족에게 표시할 이름')),
+          OutlinedButton(
+              onPressed: enabled
+                  ? () =>
+                      ref.read(ledgerSessionProvider.notifier).join(_name.text)
+                  : null,
+              child: const Text('현재 Google 계정으로 가족 참여')),
+        ],
         SelectableText(
             'https://docs.google.com/spreadsheets/d/${repository.sheetId}/edit'),
         TextButton(
