@@ -1,6 +1,6 @@
 # paylog
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. **Phase 1은 샘플 데이터 모드**이며 실제 Google 인증, Sheets 저장, SMS 수집은 연결하지 않습니다. 원본 요구사항은 [개발 명세](docs/DEVELOPMENT_SPEC.md), 이번 구현 범위와 후속 계획은 [아키텍처](docs/architecture.md)를 참고하세요. 첨부 명세의 전체 MVP와 이번 단계의 완료 범위는 다릅니다.
+가족의 일상을 가볍게 기록하는 Flutter Web 가계부. **Phase 1은 샘플 데이터 모드**이며 달력의 실제 Google 인증·Sheets 저장·SMS 수집은 연결하지 않습니다. 별도 설정 화면에 **Google 로그인·Sheets 읽기/쓰기 연결 PoC**를 제공하며 [설정 가이드](docs/setup-google.md)를 따라 공개 웹 클라이언트 ID를 구성해야 합니다. 원본 요구사항은 [개발 명세](docs/DEVELOPMENT_SPEC.md), 이번 구현 범위와 후속 계획은 [아키텍처](docs/architecture.md)를 참고하세요. 첨부 명세의 전체 MVP와 이번 단계의 완료 범위는 다릅니다.
 
 ## 실행
 
@@ -63,4 +63,4 @@ apps/web/lib/
   features/settings/      # 샘플 상태와 PWA 안내
 ```
 
-Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fonts/OFL.txt`에 있습니다. API 키·인증 토큰은 필요하지 않습니다. 앞으로도 OAuth 토큰이나 기기 수집 비밀키를 웹 번들·Git에 포함하지 않습니다.
+Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fonts/OFL.txt`에 있습니다. 샘플 모드에는 API 키·인증 토큰이 필요하지 않습니다. Google 연결 PoC에는 공개 웹 OAuth 클라이언트 ID를 빌드 설정으로 전달합니다. 앞으로도 OAuth 토큰이나 기기 수집 비밀키를 웹 번들·Git에 포함하지 않습니다.

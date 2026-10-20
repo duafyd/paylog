@@ -38,7 +38,12 @@ void main() {
       expect(find.text('paylog'), findsOneWidget);
       expect(find.text('₩180,600'), findsOneWidget);
       expect(tester.takeException(), isNull);
-      for (final path in ['/statistics', '/add', '/settings']) {
+      for (final path in [
+        '/statistics',
+        '/add',
+        '/settings',
+        '/google-connection'
+      ]) {
         container.read(routerProvider).go(path);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
@@ -47,10 +52,24 @@ void main() {
   }
   testWidgets('360px와 큰 글씨에서도 주요 화면을 사용할 수 있다', (tester) async {
     final container = await mount(tester, width: 360, scale: 1.6);
-    for (final path in ['/', '/statistics', '/add', '/settings']) {
+    for (final path in [
+      '/',
+      '/statistics',
+      '/add',
+      '/settings',
+      '/google-connection'
+    ]) {
       container.read(routerProvider).go(path);
       await tester.pumpAndSettle();
     }
+  });
+  testWidgets('OAuth 미설정 상태를 안내하고 샘플 원장을 유지한다', (tester) async {
+    final container = await mount(tester);
+    container.read(routerProvider).go('/google-connection');
+    await tester.pumpAndSettle();
+    expect(find.text('웹 OAuth 설정이 필요해요'), findsOneWidget);
+    expect(find.text('Google 로그인'), findsNothing);
+    expect(container.read(transactionsProvider), hasLength(6));
   });
   testWidgets('날짜 선택과 연말 월 이동, 빈 상태를 지원한다', (tester) async {
     final container = await mount(tester);

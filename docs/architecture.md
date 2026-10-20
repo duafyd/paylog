@@ -23,3 +23,10 @@ Flutter Web + Riverpod + go_router의 모바일 우선 가계부를 샘플 데�
 4. **거래 완성**: 상세/수정/소프트 삭제, 로딩·실패·재시도 UI, 데이터 보존과 네트워크 단절 처리.
 5. **SMS**: 별도 GAS 수집 엔드포인트·기기별 토큰 해시·카드 allowlist·중복/취소 파서, Android 보조 앱과 iOS 단축어 실기기 PoC. 원문/토큰 로깅 금지. 웹 PWA는 SMS 권한을 요청하지 않는다.
 6. **배포 품질**: Firebase Hosting HTTPS, 캐시/업데이트 정책, 오프라인 전략, 접근성·보안·무료 할당량 검증.
+
+
+## Google 연결 PoC 추가
+
+`features/google_connection/`에 GIS JS interop 포트, 세션 컨트롤러, 고정 Google API transport와 SheetsProbe를 분리했다. 설정 화면에서 `/google-connection`으로 이동한다. identity scope와 Sheets scope를 분리하고 userinfo의 subject를 비교하며 토큰은 메모리에만 보관한다. 프로필·오류·로딩·결과를 Riverpod ChangeNotifierProvider로 제공한다.
+
+실제 가계부 Repository는 여전히 InMemory다. 기존 시트는 읽기·스키마 검사만 하고 쓰기는 새 테스트 시트에 명시적 동의 후 진행한다. 이 PoC의 테스트 행은 Members UUID 대신 Google subject를 임시 사용하므로 운영 원장으로 자동 전환하지 않는다. [설정 가이드](setup-google.md)의 실제 계정/실기기 체크리스트를 완료한 후 원장 어댑터를 구현한다.

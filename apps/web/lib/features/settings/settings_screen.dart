@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
 
@@ -23,6 +24,11 @@ class SettingsScreen extends StatelessWidget {
                   '눈이와 딘이의 가상 거래로 화면을 둘러볼 수 있어요. 추가한 기록은 현재 세션에만 보관되고 새로고침하면 초기화됩니다.'),
             ])),
         const SizedBox(height: 16),
+        FilledButton.icon(
+            onPressed: () => context.go('/google-connection'),
+            icon: const Icon(Icons.link),
+            label: const Text('Google 연결 검증 열기')),
+        const SizedBox(height: 16),
         const BentoCard(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -32,12 +38,12 @@ class SettingsScreen extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.account_circle_outlined),
               title: Text('Google 로그인'),
-              subtitle: Text('실제 인증은 아직 연결되지 않았어요.')),
+              subtitle: Text('연결 검증 화면에서 로그인을 시험할 수 있어요.')),
           ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.table_chart_outlined),
               title: Text('Google Sheets 연결'),
-              subtitle: Text('가족 공유와 영구 저장은 다음 단계입니다.')),
+              subtitle: Text('읽기·쓰기 PoC 제공. 달력 연결은 다음 단계입니다.')),
           ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.sms_outlined),

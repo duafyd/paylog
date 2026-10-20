@@ -14,27 +14,38 @@ fs.mkdirSync(screenshotDir,{recursive:true});
  await page.locator('flt-semantics-placeholder').evaluate(el=>el.click());
  async function snapshotContains(text) {
   for(let i=0;i<50;i++){const snapshot=await page.locator('body').ariaSnapshot();if(snapshot.includes(text)) return snapshot;await page.waitForTimeout(100);}
-  throw new Error('Expected accessibility content: '+text);
+  throw new Error('Expected accessibility content: '+text+'\n'+await page.locator('body').ariaSnapshot());
  }
+ async function fill(name,value){
+  const input=page.getByRole('textbox',{name,exact:true});await input.click();
+  await page.keyboard.press('ControlOrMeta+A');await page.keyboard.insertText(value);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ }
+ async function scroll(delta){await page.mouse.move(200,400);await page.mouse.wheel(0,delta);await page.waitForTimeout(250);}
  async function tab(name){await page.getByRole('tab',{name,exact:true}).or(page.getByRole('button',{name,exact:true})).first().click();}
  await tab('등록');
- await page.getByRole('textbox',{name:'거래 금액',exact:true}).fill('25000');
- await page.getByRole('textbox',{name:'사용처',exact:true}).fill('브라우저 검증 거래');
+ await scroll(-5000);
+ await fill('거래 금액','25000');
+ await fill('사용처','브라우저 검증 거래');
  await page.getByRole('button',{name:'기록 저장하기',exact:true}).click();
 
- await snapshotContains('브라우저 검증 거래');
- assert((await page.locator('body').ariaSnapshot()).includes('₩205,600'));
+ await snapshotContains('거래를 저장했어요.');
+ await scroll(-5000);
+ await snapshotContains('₩205,600');
  await page.screenshot({path:path.join(screenshotDir,'saved-expense.png')});
  await tab('통계');
  await snapshotContains('어디에 사용했을까요?');
- assert((await page.locator('body').ariaSnapshot()).includes('₩106,200'));
+ await scroll(5000);
+ await snapshotContains('₩106,200');
  await tab('등록');
+ await scroll(-5000);
  await page.getByRole('button',{name:'수입',exact:true}).click();
- await page.getByRole('textbox',{name:'거래 금액',exact:true}).fill('100000');
- await page.getByRole('textbox',{name:'수입 내역',exact:true}).fill('브라우저 검증 수입');
+ await fill('거래 금액','100000');
+ await fill('수입 내역','브라우저 검증 수입');
  await page.getByRole('button',{name:'기록 저장하기',exact:true}).click();
- await snapshotContains('브라우저 검증 수입');
- assert((await page.locator('body').ariaSnapshot()).includes('₩4,300,000'));
+ await snapshotContains('거래를 저장했어요.');
+ await scroll(-5000);
+ await snapshotContains('₩4,300,000');
  await page.reload({waitUntil:'networkidle'});
  await page.locator('#loading').waitFor({state:'detached'});
  await page.locator('flt-semantics-placeholder').evaluate(el=>el.click());

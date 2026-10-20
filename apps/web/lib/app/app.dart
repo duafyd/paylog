@@ -7,6 +7,7 @@ import '../features/calendar/calendar_screen.dart';
 import '../features/transactions/transaction_form.dart';
 import '../features/statistics/statistics_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/google_connection/google_connection_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(routes: [
@@ -20,6 +21,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const StatisticsScreen()),
         GoRoute(
             path: '/add', builder: (context, state) => const TransactionForm()),
+        GoRoute(
+            path: '/google-connection',
+            builder: (context, state) => const GoogleConnectionScreen()),
         GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen()),
@@ -95,7 +99,9 @@ class AppShell extends StatelessWidget {
               ]),
             ))),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: paths.indexOf(path).clamp(0, 3),
+          selectedIndex: path == '/google-connection'
+              ? 3
+              : paths.indexOf(path).clamp(0, 3),
           onDestinationSelected: (index) => context.go(paths[index]),
           destinations: const [
             NavigationDestination(
