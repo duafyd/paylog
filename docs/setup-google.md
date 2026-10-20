@@ -88,3 +88,17 @@ NODE_PATH=/tmp/paylog-browser-tools/node_modules CHROMIUM_PATH=/usr/bin/chromium
 ## 6. 원장 연동 단계 추가
 
 별도의 **달력에 실제 원장 연결** 패널에서 새 Transactions·Members 템플릿을 만들거나 지원 스키마의 시트를 연결할 수 있다. 연결 후 달력·등록·통계가 해당 원장으로 전환된다. 기본 샘플과 거래를 합치지 않는다. 실제 Google 계정 검증 미실행 상태는 여전히 유효하며 세부 제약은 [원장 가이드](sheets-ledger.md)를 따른다.
+
+## 브랜딩의 앱 도메인·공개 문서
+
+최신 웹을 배포한 뒤 아래 주소를 로그인하지 않은 브라우저에서 확인하고 Google Auth Platform → 브랜딩에 입력한다.
+
+| 항목 | 주소 |
+|---|---|
+| 애플리케이션 홈페이지 | `https://paylog-c5c2d.web.app` |
+| 애플리케이션 개인정보처리방침 링크 | `https://paylog-c5c2d.web.app/privacy.html` |
+| 애플리케이션 서비스 약관 링크 | `https://paylog-c5c2d.web.app/terms.html` |
+
+두 문서는 Flutter 실행·Google 로그인 없이 열리는 HTML이다. 앱 설정과 초기 HTML에도 링크가 있다. 개인정보 문의처는 공개 프로젝트의 GitHub Issues로 연결하며 민감정보를 공개 게시하지 않도록 안내한다. 운영자가 별도 공개 이메일을 정하면 문서의 문의처를 갱신한다. 문서는 실제 데이터 처리 방식·운영 정보가 변경될 때 함께 관리해야 한다.
+
+Cloud Shell의 저장소 루트에서 `git pull --ff-only && bash scripts/deploy-cloud-shell.sh`로 웹만 재배포한다. 페이지 생성·배포가 Google OAuth 검증 승인이나 게시 상태 변경을 자동으로 수행하지는 않는다. 홈페이지 도메인 소유권, 개발자 연락처, 요청 범위와 검증 항목은 Google Console의 실제 요구사항을 따른다.

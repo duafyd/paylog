@@ -6,6 +6,7 @@ import '../export/ledger_export.dart';
 import '../export/download.dart';
 import '../ledger/ledger_widgets.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/platform/open_public_page.dart';
 import '../../core/widgets/bento_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -83,6 +84,15 @@ class SettingsScreen extends ConsumerWidget {
                 downloadCsv(ledgerCsv(ref.read(transactionsProvider))),
             icon: const Icon(Icons.download_outlined),
             label: const Text('현재 원장 CSV 내보내기')),
+        const SizedBox(height: 16),
+        Wrap(alignment: WrapAlignment.center, spacing: 12, children: [
+          TextButton(
+              onPressed: () => openPublicPage('/privacy.html'),
+              child: const Text('개인정보처리방침')),
+          TextButton(
+              onPressed: () => openPublicPage('/terms.html'),
+              child: const Text('서비스 이용약관')),
+        ]),
         const SizedBox(height: 24),
         const Text('paylog 0.1.0 · Phase 1',
             textAlign: TextAlign.center,

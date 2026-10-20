@@ -164,3 +164,9 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 ### Spark 요금제 실행 파일 제한 대응
 
 실제 오류는 Firebase Hosting `populateFiles`의 HTTP 400: **Executable files are forbidden on the Spark billing plan**이었다. 로그인 실패가 아니었다. APK 게시를 GitHub Releases로 옮겼으며 Firebase에는 HTML·JSON·체크섬만 배포한다. APK 파일은 staging에서 제거하고 Hosting ignore에도 추가했다. 기존 APK 경로는 GitHub 공개 asset으로 리다이렉트한다. 공개된 동일 버전은 덮어쓰지 않으며 APK 해시·인증서가 다르면 중단한다. 배포 관련 테스트 **17개 통과**. 실제 소유자 APK 업로드에는 본인 Cloud Shell의 GitHub 인증이 필요하며 아직 완료되지 않았다.
+
+### OAuth 브랜딩용 공개 문서
+
+`apps/web/web/privacy.html`, `terms.html`, `legal.css`를 추가했다. 문서는 로그인·JavaScript 없이 읽을 수 있고, 계정/원장/SMS 처리, 공유·보관·삭제·철회, 외부 제공자, 문의처와 이용 조건을 설명한다. 실제 거래 삭제가 소프트 삭제임을 명시하며 Google API Limited Use 정책을 포함한다. 공개 문의에 민감정보를 게시하지 않도록 안내한다. 웹 설정과 초기 HTML에서 링크한다. Google OAuth 게시·검증 승인은 별도이며, 최신 문서의 운영 사이트 반영에는 본인 Cloud Shell의 웹 재배포가 필요하다.
+
+이 변경의 로컬 검증: Flutter 포맷·정적 분석·테스트 63개·웹 릴리스 빌드 통과. 393px Chromium에서 JavaScript 비활성 상태로 두 문서의 표시·가로 넘침 없음·내부 링크를 검사하고 화면을 검수했다. Hosting 에뮬레이터에서 실제 HTML 응답(Flutter SPA fallback 아님), no-store 헤더와 CSS 응답을 확인했다. 실제 공개 URL은 웹 재배포 전에는 준비 완료로 간주하지 않는다.
