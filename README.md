@@ -1,6 +1,10 @@
 # paylog
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. **Phase 1은 샘플 데이터 모드**이며 달력의 실제 Google 인증·Sheets 저장·SMS 수집은 연결하지 않습니다. 별도 설정 화면에 **Google 로그인·Sheets 읽기/쓰기 연결 PoC**를 제공하며 [설정 가이드](docs/setup-google.md)를 따라 공개 웹 클라이언트 ID를 구성해야 합니다. 원본 요구사항은 [개발 명세](docs/DEVELOPMENT_SPEC.md), 이번 구현 범위와 후속 계획은 [아키텍처](docs/architecture.md)를 참고하세요. 첨부 명세의 전체 MVP와 이번 단계의 완료 범위는 다릅니다.
+가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·수동 등록·통계가 해당 시트를 사용합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
+
+- [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
+- [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)
+- [아키텍처](docs/architecture.md) · [검증 결과](docs/validation.md)
 
 ## 실행
 
@@ -15,7 +19,7 @@ flutter run -d chrome
 flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080
 ```
 
-기본 진입점은 `apps/web/lib/main.dart`입니다. 화면에서 수입/지출을 등록하면 같은 세션의 달력, 합계, 통계에 반영됩니다. **새로고침·탭 종료 시 신규 기록은 사라집니다.** 실제 금융 정보를 입력하지 마세요. 샘플은 실행 당시 월을 기준으로 생성됩니다. 현재 시각과 수동 입력은 브라우저 현지 시각을 사용하며, Sheets 단계에서 Asia/Seoul 직렬화를 도입할 예정입니다.
+기본 진입점은 `apps/web/lib/main.dart`입니다. 샘플 모드에서 수입/지출을 등록하면 현재 세션에만 반영되고 **새로고침·탭 종료 시 초기화됩니다.** 샘플은 실행 당시 서울 기준 월로 생성합니다. Sheets 모드의 신규 기록은 시트에 저장되며, 새로고침 후에는 같은 계정으로 로그인하고 시트 ID를 다시 연결해야 합니다. 날짜·시간 표시는 서울 기준입니다. 실제 서비스·실기기 검증 전에는 테스트 데이터로 확인하세요.
 
 ## 검증 및 빌드
 
@@ -60,7 +64,9 @@ apps/web/lib/
   features/calendar/      # 월 선택, 달력, 월간 요약
   features/transactions/  # 모델, Repository, Riverpod, 등록 폼
   features/statistics/    # 가족·카테고리별 지출
-  features/settings/      # 샘플 상태와 PWA 안내
+  features/settings/      # 원장 상태와 PWA 안내
+  features/google_connection/ # Google OAuth 및 연결 PoC
+  features/ledger/        # Sheets Repository, 원장 세션·연결 UI
 ```
 
 Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fonts/OFL.txt`에 있습니다. 샘플 모드에는 API 키·인증 토큰이 필요하지 않습니다. Google 연결 PoC에는 공개 웹 OAuth 클라이언트 ID를 빌드 설정으로 전달합니다. 앞으로도 OAuth 토큰이나 기기 수집 비밀키를 웹 번들·Git에 포함하지 않습니다.

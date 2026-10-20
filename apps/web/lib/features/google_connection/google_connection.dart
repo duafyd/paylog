@@ -76,7 +76,7 @@ class GoogleConnection extends ChangeNotifier {
         }
         _sheetGrant = grant;
       });
-  String _token() {
+  String requireSheetsToken() {
     final grant = _sheetGrant;
     if (grant == null || !grant.validAt(clock())) {
       _sheetGrant = null;
@@ -87,16 +87,26 @@ class GoogleConnection extends ChangeNotifier {
 
   Future<void> inspect(String input) => _run(() async {
         inspection = null;
-        inspection = await SheetsProbe(api).inspect(_token(), input);
+        inspection =
+            await SheetsProbe(api).inspect(requireSheetsToken(), input);
       });
   Future<void> createProbe() => _run(() async {
         inspection = null;
         if (profile == null) throw const ConnectionFailure('먼저 로그인해 주세요.');
-        inspection = await SheetsProbe(api)
-            .createAndVerify(_token(), profile!.subject, onCreated: (id) {
+        inspection = await SheetsProbe(api).createAndVerify(
+            requireSheetsToken(), profile!.subject, onCreated: (id) {
           createdSheetId = id;
         });
       });
+  void invalidateSession() {
+    profile = null;
+    _identityGrant = null;
+    _sheetGrant = null;
+    inspection = null;
+    createdSheetId = null;
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> disconnect() => _run(() async {
         final token = _sheetGrant?.accessToken ?? _identityGrant?.accessToken;
         profile = null;
@@ -104,6 +114,7 @@ class GoogleConnection extends ChangeNotifier {
         _sheetGrant = null;
         inspection = null;
         createdSheetId = null;
+        notifyListeners();
         if (token != null) {
           try {
             await oauth.revoke(token);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
 import '../calendar/month_selector.dart';
+import '../ledger/ledger_widgets.dart';
 import '../transactions/transaction.dart';
 import '../transactions/transaction_repository.dart';
 
@@ -10,12 +11,14 @@ class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final people = ref.watch(ledgerMembersProvider);
     final items = ref.watch(monthlyTransactionsProvider);
     final expense = totalOf(items, TransactionType.expense);
     return ListView(padding: const EdgeInsets.all(20), children: [
       Text('숫자로 보는 우리 집', style: Theme.of(context).textTheme.headlineSmall),
       const SizedBox(height: 16),
       const MonthSelector(),
+      const LedgerStatus(),
       const SizedBox(height: 20),
       BentoCard(
           child:
@@ -62,13 +65,15 @@ class StatisticsScreen extends ConsumerWidget {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SectionHeader('가족별 지출'),
         const SizedBox(height: 16),
-        ...members.map((member) => Padding(
+        ...people.map((member) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(children: [
-              Expanded(child: Text(member)),
+              Expanded(child: Text(memberLabel(member, people))),
               Flexible(
                   child: Text(
-                      won(totalOf(items.where((t) => t.member == member),
+                      won(totalOf(
+                          items.where(
+                              (t) => transactionMemberKey(t) == member.id),
                           TransactionType.expense)),
                       style: AppTheme.numberStyle
                           .copyWith(fontWeight: FontWeight.w700)))

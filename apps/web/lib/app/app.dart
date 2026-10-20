@@ -8,6 +8,7 @@ import '../features/transactions/transaction_form.dart';
 import '../features/statistics/statistics_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/google_connection/google_connection_screen.dart';
+import '../features/transactions/transaction_repository.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(routes: [
@@ -20,7 +21,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/statistics',
             builder: (context, state) => const StatisticsScreen()),
         GoRoute(
-            path: '/add', builder: (context, state) => const TransactionForm()),
+            path: '/add',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => TransactionForm(
+                    key: ObjectKey(ref.watch(transactionRepositoryProvider))))),
         GoRoute(
             path: '/google-connection',
             builder: (context, state) => const GoogleConnectionScreen()),
@@ -48,13 +52,13 @@ class PaylogApp extends ConsumerWidget {
       );
 }
 
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.path, required this.child});
   final String path;
   final Widget child;
   static const paths = ['/', '/statistics', '/add', '/settings'];
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
         body: SafeArea(
             bottom: false,
             child: Center(
@@ -89,8 +93,14 @@ class AppShell extends StatelessWidget {
                           decoration: BoxDecoration(
                               color: AppColors.tealSoft,
                               borderRadius: BorderRadius.circular(20)),
-                          child: const Text('샘플 가계부',
-                              style: TextStyle(
+                          child: Text(
+                              ref
+                                          .watch(transactionRepositoryProvider)
+                                          .sheetId ==
+                                      null
+                                  ? '샘플 가계부'
+                                  : 'Sheets 원장',
+                              style: const TextStyle(
                                   color: AppColors.teal,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600))),

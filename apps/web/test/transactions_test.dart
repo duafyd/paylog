@@ -4,7 +4,7 @@ import 'package:paylog/features/transactions/transaction.dart';
 import 'package:paylog/features/transactions/transaction_repository.dart';
 
 void main() {
-  test('월별 합계는 다른 달을 제외하고 신규 수입과 지출을 반영한다', () {
+  test('월별 합계는 다른 달을 제외하고 신규 수입과 지출을 반영한다', () async {
     final container = ProviderContainer(overrides: [
       clockProvider.overrideWithValue(() => DateTime(2026, 10, 20))
     ]);
@@ -18,7 +18,7 @@ void main() {
       ('new-income', 10, 20000, TransactionType.income),
       ('other-month', 11, 99999, TransactionType.expense),
     ]) {
-      container.read(transactionsProvider.notifier).add(BudgetTransaction(
+      await container.read(transactionsProvider.notifier).add(BudgetTransaction(
           id: id,
           type: type,
           amount: amount,
@@ -35,7 +35,7 @@ void main() {
     expect(
         container.read(monthlyTransactionsProvider).single.id, 'other-month');
   });
-  test('저장소는 0원, 음수 및 중복 ID를 거부한다', () {
+  test('저장소는 0원, 음수 및 중복 ID를 거부한다', () async {
     final repository = InMemoryTransactionRepository(DateTime(2026, 10, 20));
     BudgetTransaction item(String id, int amount) => BudgetTransaction(
         id: id,
@@ -45,12 +45,13 @@ void main() {
         merchant: '테스트',
         categoryId: 'food',
         member: '눈이');
-    expect(() => repository.add(item('zero', 0)), throwsArgumentError);
-    expect(() => repository.add(item('negative', -1)), throwsArgumentError);
-    expect(() => repository.add(item('too-large', 1000000000000)),
-        throwsArgumentError);
-    repository.add(item('unique', 100));
-    expect(() => repository.add(item('unique', 100)), throwsStateError);
+    await expectLater(repository.add(item('zero', 0)), throwsArgumentError);
+    await expectLater(
+        repository.add(item('negative', -1)), throwsArgumentError);
+    await expectLater(
+        repository.add(item('too-large', 1000000000000)), throwsArgumentError);
+    await repository.add(item('unique', 100));
+    await expectLater(repository.add(item('unique', 100)), throwsStateError);
   });
   test('금액과 날짜 비교는 연도와 월 경계를 구분한다', () {
     expect(won(1234567), '₩1,234,567');

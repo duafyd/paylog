@@ -17,7 +17,7 @@ fs.mkdirSync(screenshotDir,{recursive:true});
   throw new Error('Expected accessibility content: '+text+'\n'+await page.locator('body').ariaSnapshot());
  }
  async function fill(name,value){
-  const input=page.getByRole('textbox',{name,exact:true});await input.click();
+  const input=page.getByRole('textbox',{name,exact:true});await input.click();await page.waitForTimeout(150);
   await page.keyboard.press('ControlOrMeta+A');await page.keyboard.insertText(value);
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  }

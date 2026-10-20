@@ -1,6 +1,6 @@
 # Google 로그인·Sheets 연결 PoC
 
-이 단계는 Google Identity Services(GIS) 웹 토큰 모델로 계정을 확인하고 Sheets REST API 접근을 검증한다. **샘플 달력 원장과 실제 Sheets 데이터의 연결은 아직 구현하지 않았다.** 기존 시트는 GET으로만 검사한다. 쓰기 검증은 사용자가 명시적으로 요청한 새 테스트 시트에서만 수행한다.
+이 단계는 Google Identity Services(GIS) 웹 토큰 모델로 계정을 확인하고 Sheets REST API 접근을 검증한다. **아래 접근 확인 PoC와 별도로 [Sheets 원장 연결](sheets-ledger.md)이 추가되었다.** 기존 시트는 GET으로만 검사한다. 쓰기 검증은 사용자가 명시적으로 요청한 새 테스트 시트에서만 수행한다.
 
 ## 1. Google Cloud에서 직접 설정
 
@@ -83,3 +83,8 @@ NODE_PATH=/tmp/paylog-browser-tools/node_modules CHROMIUM_PATH=/usr/bin/chromium
 실제 검증이 끝난 뒤 Sheets Repository, Members UUID 매핑, 원장 전환, 수정·소프트 삭제·충돌/재시도 처리를 구현한다.
 
 참고: [GIS 토큰 모델](https://developers.google.com/identity/oauth2/web/guides/use-token-model), [GIS JS 레퍼런스](https://developers.google.com/identity/oauth2/web/reference/js-reference), [Sheets API](https://developers.google.com/sheets/api/reference/rest).
+
+
+## 6. 원장 연동 단계 추가
+
+별도의 **달력에 실제 원장 연결** 패널에서 새 Transactions·Members 템플릿을 만들거나 지원 스키마의 시트를 연결할 수 있다. 연결 후 달력·등록·통계가 해당 원장으로 전환된다. 기본 샘플과 거래를 합치지 않는다. 실제 Google 계정 검증 미실행 상태는 여전히 유효하며 세부 제약은 [원장 가이드](sheets-ledger.md)를 따른다.

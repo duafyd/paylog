@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
 import 'google_connection.dart';
+import '../ledger/ledger_widgets.dart';
 
 class GoogleConnectionScreen extends ConsumerStatefulWidget {
   const GoogleConnectionScreen({super.key});
@@ -65,7 +66,7 @@ class _GoogleConnectionScreenState
       const BentoCard(
           color: AppColors.tealSoft,
           child: Text(
-              '연결 PoC · 샘플 가계부는 계속 샘플 모드로 동작합니다. 여기서 읽은 실제 거래를 달력에 섞거나 기존 시트에 쓰지 않습니다.')),
+              '접근 확인 PoC는 가계부와 별개로 동작해요. 아래에서 실제 원장을 연결하면 달력·등록·통계가 Sheets 모드로 전환됩니다. 샘플 거래는 복사하지 않습니다.')),
       const SizedBox(height: 16),
       if (!connection.configured)
         const BentoCard(
@@ -214,6 +215,8 @@ class _GoogleConnectionScreenState
                   const Text('테스트 시트는 확인 후 Google Drive에서 직접 삭제해 주세요.',
                       style: TextStyle(fontSize: 12, color: AppColors.muted)),
                 ]))),
+      const SizedBox(height: 16),
+      const LedgerConnectionPanel(),
     ]);
   }
 }
