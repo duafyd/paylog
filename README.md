@@ -101,3 +101,7 @@ git pull --ff-only && bash scripts/deploy-cloud-shell.sh && python3 scripts/rele
 최초 APK 릴리스에는 본인이 정하는 서명키 전용 새 암호(12자 이상)가 필요합니다. 암호화된 키 파일과 암호를 안전하게 백업하고 채팅·Git에 올리지 마세요. 정식 APK 다운로드 사이트는 스크립트 성공 후 이용할 수 있습니다. [상세 배포 절차](docs/deployment.md), [검증 결과와 미검증 항목](docs/validation.md)을 확인하세요.
 
 현재 웹 UI는 **Bento Grid + Modern Minimal** 콘셉트로, 화이트 배경·차콜 요약 카드·블루 포인트·독립형 하단 내비게이션을 사용합니다. [변경된 화면 캡처와 검증 결과](docs/validation.md)를 확인할 수 있습니다.
+
+## 가족용 정식 배포
+
+[가족용 배포·운영 가이드](docs/FAMILY_RELEASE.md)에 최신 공개 상태, 가족 계정 설정, 백업·복구 절차를 정리했습니다. 본인 Cloud Shell에서 최신 코드를 받은 뒤 `bash scripts/release-family.sh`를 실행하면 웹·APK 배포와 공개 정책 문서·빌드 해시·APK 버전/해시 검증을 순서대로 수행합니다. 조회만 하려면 `python3 scripts/verify-release.py`를 실행합니다.

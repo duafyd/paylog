@@ -1,6 +1,6 @@
 # 배포와 CI
 
-Firebase Hosting 설정은 저장소의 `firebase.json`이다. 실제 배포는 프로젝트 ID와 본인 Firebase 로그인/CI 인증이 있어야 한다. 이 환경에는 `FIREBASE_PROJECT_ID`와 웹 OAuth ID가 없어 실제 배포·운영 OAuth 검증을 수행하지 않았다. 플랫폼 제공 서비스 계정 자격증명을 사용자 계정 대신 사용하지 않는다.
+Firebase Hosting 설정은 저장소의 `firebase.json`이다. 실제 배포는 프로젝트 ID와 본인 Firebase 로그인/CI 인증이 있어야 한다. 공개 프로젝트·OAuth ID는 확인됐지만 이 개발 환경에는 사용자 Firebase 로그인 계정이 없다. 본인 Cloud Shell에서 배포하며, 최신 공개 상태와 가족용 절차는 [가족용 정식 배포](FAMILY_RELEASE.md)를 따른다. 플랫폼 제공 서비스 계정 자격증명을 사용자 계정 대신 사용하지 않는다.
 
 ```sh
 # Flutter SDK를 PATH에 추가한 뒤
@@ -19,7 +19,7 @@ Hosting SPA rewrite, HTTPS 보안 헤더, JS 재검증과 HTML no-store를 설�
 
 Google OAuth의 승인된 JavaScript 원본에 실제 Hosting 도메인을 등록하고 API 활성화·동의 화면·테스트 사용자/공개 정책을 확인한다. OAuth 검증이나 Workspace 정책상 사용이 차단되면 본인 테스트 사용자로 제한하거나 대체 백엔드를 검토한다.
 
-`.github/workflows/verify.yml`은 Flutter 정적 분석·위젯/단위 테스트·웹 빌드, SMS 파서 테스트·GAS 생성물 일치, Android JVM 테스트·Lint·debug APK 빌드를 실행하고 산출물을 보관한다. 자동 배포는 설정하지 않았다. workflow는 PR 제출만으로 성공한 것으로 간주하지 않으며 GitHub 실행 결과를 확인한다. Android APK는 개발용 서명이며 앱스토어 배포물이 아니다.
+`.github/workflows/verify.yml`은 Flutter 정적 분석·위젯/단위 테스트·웹 빌드, SMS 파서 테스트·GAS 생성물 일치, Android JVM 테스트·Lint·debug APK 빌드를 실행하고 산출물을 보관한다. 자동 배포는 설정하지 않았다. workflow는 PR 제출만으로 성공한 것으로 간주하지 않으며 GitHub 실행 결과를 확인한다. CI의 Android APK는 개발용 또는 unsigned 검증 산출물이다. 본인 Cloud Shell의 정식 서명 APK는 GitHub Releases에 직접 배포하며 앱스토어 등록과는 별개다.
 
 ## 배포 사전 확인과 실행
 

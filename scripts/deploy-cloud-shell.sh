@@ -85,3 +85,6 @@ try:
 except RuntimeError as error:
     raise SystemExit(str(error)) from None
 PY
+# A 200 status can be the SPA fallback, even when a policy page is missing.
+# Verify actual policy contents and exact deployed build bytes before success.
+python3 scripts/verify-release.py --web-only --web-build apps/web/build/web
