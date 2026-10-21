@@ -70,9 +70,10 @@ class CalendarScreen extends ConsumerWidget {
                       child: Row(children: [
                         CircleAvatar(
                             radius: 18,
-                            backgroundColor: AppColors.tealSoft,
+                            backgroundColor: AppColors.accentSoft,
                             child: Text(member.name.substring(0, 1),
-                                style: const TextStyle(color: AppColors.teal))),
+                                style:
+                                    const TextStyle(color: AppColors.accent))),
                         const SizedBox(width: 12),
                         Expanded(child: Text(memberLabel(member, people))),
                         Flexible(

@@ -105,7 +105,7 @@ class AppShell extends ConsumerWidget {
                               color: AppColors.dark,
                               borderRadius: BorderRadius.circular(11)),
                           child: const Icon(Icons.grid_view_rounded,
-                              color: AppColors.lime, size: 21)),
+                              color: AppColors.highlight, size: 21)),
                       const SizedBox(width: 10),
                       const Expanded(
                           child: FittedBox(
@@ -121,7 +121,7 @@ class AppShell extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
-                              color: AppColors.tealSoft,
+                              color: AppColors.accentSoft,
                               borderRadius: BorderRadius.circular(20)),
                           child: Text(
                               ref
@@ -131,7 +131,7 @@ class AppShell extends ConsumerWidget {
                                   ? '샘플 가계부'
                                   : 'Sheets 원장',
                               style: const TextStyle(
-                                  color: AppColors.teal,
+                                  color: AppColors.accent,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600))),
                     ])),

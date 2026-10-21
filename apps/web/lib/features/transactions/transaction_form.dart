@@ -369,7 +369,7 @@ class CategoryTile extends StatelessWidget {
         selected: selected,
         button: true,
         child: Material(
-            color: selected ? AppColors.tealSoft : AppColors.background,
+            color: selected ? AppColors.accentSoft : AppColors.background,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
                 onTap: onTap,
@@ -379,12 +379,13 @@ class CategoryTile extends StatelessWidget {
                         const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
                     child: Column(children: [
                       Icon(category.icon,
-                          color: selected ? AppColors.teal : AppColors.muted),
+                          color: selected ? AppColors.accent : AppColors.muted),
                       const SizedBox(height: 8),
                       Text(category.label,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: selected ? AppColors.teal : AppColors.ink,
+                              color:
+                                  selected ? AppColors.accent : AppColors.ink,
                               fontSize: 12))
                     ])))),
       );

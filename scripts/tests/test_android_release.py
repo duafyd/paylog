@@ -101,7 +101,7 @@ class AndroidReleaseTest(unittest.TestCase):
             files = list((root / 'web/downloads').iterdir())
             self.assertEqual(len(files), 4)
             self.assertFalse(any(b'PRIVATE_DO_NOT_PUBLISH' in f.read_bytes() for f in files))
-            self.assertEqual(json.loads((root / 'web/downloads/android-release.json').read_text())['versionCode'], 2)
+            self.assertEqual(json.loads((root / 'web/downloads/android-release.json').read_text())['versionCode'], release.VERSION_CODE)
 
     def test_download_site_has_no_spa_fallback_and_forces_apk_download(self):
         config = release.hosting_config('paylog-c5c2d-android')['hosting']

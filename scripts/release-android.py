@@ -16,8 +16,8 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.0.0'
-VERSION_CODE = 2
+VERSION = '1.0.1'
+VERSION_CODE = 3
 ALIAS = 'paylog-release'
 REPOSITORY = 'duafyd/paylog'
 RELEASE_TAG = 'android-v' + VERSION
@@ -193,7 +193,7 @@ def main():
         if hashlib.sha256(cert).hexdigest() != fingerprint[1].lower():
             raise RuntimeError('APK와 보관된 서명키의 인증서가 다릅니다. 배포를 중단했습니다.')
         badging = subprocess.run([str(tools / 'android-sdk/build-tools/36.0.0/aapt2'), 'dump', 'badging', str(apk)], env=env, text=True, capture_output=True, check=True).stdout
-        if not re.search(r"package: name='app.paylog.sms' versionCode='2' versionName='1.0.0'", badging) or 'application-debuggable' in badging:
+        if not re.search(rf"package: name='app.paylog.sms' versionCode='{VERSION_CODE}' versionName='{re.escape(VERSION)}'", badging) or 'application-debuggable' in badging:
             raise RuntimeError('APK의 버전·패키지 또는 디버그 설정이 릴리스 조건과 다릅니다.')
         if options.build_only:
             print('릴리스 서명 및 인증서 일치 확인 완료: ' + str(apk))

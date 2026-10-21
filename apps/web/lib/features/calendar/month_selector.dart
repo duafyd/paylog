@@ -33,7 +33,7 @@ class MonthSelector extends ConsumerWidget {
                 DateTime(now.year, now.month);
             ref.read(selectedDayProvider.notifier).state = now;
           },
-          child: const Text('오늘', style: TextStyle(color: AppColors.teal))),
+          child: const Text('오늘', style: TextStyle(color: AppColors.accent))),
     ]);
   }
 }

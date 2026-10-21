@@ -45,7 +45,10 @@ class SecureStore(private val context: Context) {
     fun enqueue(payload: JSONObject): String {
         require(pending().size < 100)
         val id = UUID.randomUUID().toString()
-        payload.put("messageId",id).put("queuedAt", System.currentTimeMillis())
+        // Queue IDs remain unique files; source identity survives duplicate
+        // broadcasts and retries so the server can deduplicate ledger writes.
+        if (payload.optString("messageId").isBlank()) payload.put("messageId",id)
+        payload.put("queuedAt", System.currentTimeMillis())
         write(id,payload); return id
     }
 }

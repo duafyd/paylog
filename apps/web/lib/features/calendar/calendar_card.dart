@@ -93,7 +93,7 @@ class DayCell extends StatelessWidget {
                 color: selected ? AppColors.dark : null,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: today ? AppColors.teal : Colors.transparent)),
+                    color: today ? AppColors.accent : Colors.transparent)),
             child: Column(children: [
               Text('${date.day}',
                   style: TextStyle(
@@ -112,7 +112,8 @@ class DayCell extends StatelessWidget {
                 Text('+${compact(income)}',
                     style: TextStyle(
                         fontSize: 9,
-                        color: selected ? AppColors.lime : AppColors.teal)),
+                        color:
+                            selected ? AppColors.highlight : AppColors.accent)),
             ]),
           ),
         )),

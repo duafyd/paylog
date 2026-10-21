@@ -23,11 +23,11 @@ class SettingsScreen extends ConsumerWidget {
           const LedgerStatus(),
           if (ref.watch(transactionRepositoryProvider).sheetId == null) ...[
             const BentoCard(
-              color: AppColors.tealSoft,
+              color: AppColors.accentSoft,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.spa_outlined, color: AppColors.teal, size: 28),
+                    Icon(Icons.spa_outlined, color: AppColors.accent, size: 28),
                     SizedBox(height: 16),
                     SectionHeader('지금은 샘플 모드예요'),
                     SizedBox(height: 8),
@@ -56,7 +56,7 @@ class SettingsScreen extends ConsumerWidget {
           ])),
           const SizedBox(height: 16),
           BentoCard(
-              color: AppColors.sand,
+              color: AppColors.secondarySurface,
               child: _SettingsAction(
                   icon: Icons.auto_awesome_outlined,
                   title: 'Android · iPhone 사용 가이드',
@@ -121,7 +121,7 @@ class _SettingsAction extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(14)),
-                  child: Icon(icon, size: 21, color: AppColors.teal)),
+                  child: Icon(icon, size: 21, color: AppColors.accent)),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(

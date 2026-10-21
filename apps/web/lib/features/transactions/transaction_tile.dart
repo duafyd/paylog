@@ -23,8 +23,8 @@ class TransactionTile extends StatelessWidget {
                     decoration: BoxDecoration(
                         color: AppColors.background,
                         borderRadius: BorderRadius.circular(14)),
-                    child:
-                        Icon(t.category.icon, color: AppColors.teal, size: 22)),
+                    child: Icon(t.category.icon,
+                        color: AppColors.accent, size: 22)),
                 const SizedBox(width: Space.md),
                 Expanded(
                     child: Column(
@@ -48,8 +48,9 @@ class TransactionTile extends StatelessWidget {
                         semanticsLabel: '${income ? '수입' : '지출'} ${t.amount}원',
                         style: AppTheme.numberStyle.copyWith(
                             fontWeight: FontWeight.w700,
-                            color:
-                                income ? AppColors.teal : AppColors.expense))),
+                            color: income
+                                ? AppColors.accent
+                                : AppColors.expense))),
               ],
             )));
   }

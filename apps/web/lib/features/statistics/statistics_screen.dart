@@ -50,7 +50,7 @@ class StatisticsScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 20),
               child: Column(children: [
                 Row(children: [
-                  Icon(category.icon, color: AppColors.teal, size: 20),
+                  Icon(category.icon, color: AppColors.accent, size: 20),
                   const SizedBox(width: 10),
                   Expanded(child: Text(category.label)),
                   Flexible(
@@ -65,7 +65,7 @@ class StatisticsScreen extends ConsumerWidget {
                     child: LinearProgressIndicator(
                         value: ratio,
                         minHeight: 7,
-                        backgroundColor: AppColors.tealSoft,
+                        backgroundColor: AppColors.accentSoft,
                         semanticsLabel: '${category.label} 지출 비율',
                         semanticsValue: '${(ratio * 100).round()}%')),
               ]));

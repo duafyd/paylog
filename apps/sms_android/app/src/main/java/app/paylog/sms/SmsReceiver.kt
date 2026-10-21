@@ -21,7 +21,8 @@ class SmsReceiver : BroadcastReceiver() {
                 if (!allowed.contains(sender) || parts.any { it.originatingAddress?.replace(Regex("[\\s()-]"), "") != sender }) return@Thread
                 val body = parts.joinToString("") { it.messageBody.orEmpty() }
                 if (body.isEmpty() || body.length > 4096) return@Thread
-                val payload = org.json.JSONObject().put("action","sms.ingest").put("sender",sender).put("body",body).put("receivedAt",Instant.now().toString())
+                val messageId = SmsIdentity.of(sender, parts.map { it.timestampMillis to it.messageBody.orEmpty() })
+                val payload = org.json.JSONObject().put("action","sms.ingest").put("messageId",messageId).put("sender",sender).put("body",body).put("receivedAt",Instant.now().toString())
                 val id = store.enqueue(payload)
                 UploadWorker.schedule(context,id)
             } catch (_: Exception) {

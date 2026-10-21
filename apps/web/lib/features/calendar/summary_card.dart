@@ -18,7 +18,7 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) => BentoCard(
         color: primary
             ? AppColors.dark
-            : (title == '남은 금액' ? AppColors.tealSoft : AppColors.surface),
+            : (title == '남은 금액' ? AppColors.accentSoft : AppColors.surface),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(
@@ -33,19 +33,19 @@ class SummaryCard extends StatelessWidget {
                         ? Icons.south_west_rounded
                         : Icons.account_balance_wallet_outlined,
                 size: 20,
-                color: primary ? AppColors.lime : AppColors.teal),
+                color: primary ? AppColors.highlight : AppColors.accent),
           ]),
           const SizedBox(height: 22),
           Text(won(amount),
               style: AppTheme.numberStyle.copyWith(
                   fontSize: primary ? 36 : 20,
                   fontWeight: FontWeight.w700,
-                  color: primary ? AppColors.lime : AppColors.ink,
+                  color: primary ? AppColors.highlight : AppColors.ink,
                   letterSpacing: -.7)),
           if (label != null) ...[
             const SizedBox(height: 12),
             Text(label!,
-                style: const TextStyle(color: Color(0xFFCCD8CF), fontSize: 12)),
+                style: const TextStyle(color: Color(0xFFCDD2DD), fontSize: 12)),
           ],
         ]),
       );

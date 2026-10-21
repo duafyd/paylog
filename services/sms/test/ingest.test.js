@@ -31,6 +31,9 @@ test('year boundary and impossible/ambiguous dates',()=>{
 test('same message id deduplicates; separate same-value payments remain separate',()=>{
   const f=fixture(); assert.equal(ingest(f.input,f.store,crypto,now).code,'CREATED');
   assert.equal(ingest(f.input,f.store,crypto,now).code,'DUPLICATE');
+  // A repeated OS broadcast may be queued at a new time but keeps source identity.
+  assert.equal(ingest({...f.input,receivedAt:'2026-10-12T18:31:55+09:00'},f.store,crypto,now).code,'DUPLICATE');
+  assert.equal(f.rows.length,1);
   assert.equal(ingest({...f.input,messageId:'sms-2'},f.store,crypto,now).code,'CREATED');
   assert.equal(f.rows.length,2); assert.equal(JSON.stringify(f.rows).includes(f.input.body),false);
 });

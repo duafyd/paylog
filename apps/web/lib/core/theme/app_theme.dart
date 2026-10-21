@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const background = Color(0xFFF4F5F1);
+  static const background = Color(0xFFF5F6F8);
   static const surface = Colors.white;
-  static const dark = Color(0xFF24382F);
-  static const lime = Color(0xFFDBEDAB);
-  static const sand = Color(0xFFF1EBDC);
-  static const ink = Color(0xFF202923);
-  static const muted = Color(0xFF70776F);
-  static const teal = Color(0xFF356653);
-  static const tealSoft = Color(0xFFE4EDDE);
-  static const expense = Color(0xFFAA4F45);
-  static const border = Color(0xFFE6E9E1);
+  static const dark = Color(0xFF20242C);
+  static const highlight = Color(0xFFFFFFFF);
+  static const secondarySurface = Color(0xFFF0F2F6);
+  static const ink = Color(0xFF20242C);
+  static const muted = Color(0xFF667085);
+  static const accent = Color(0xFF365EDC);
+  static const accentSoft = Color(0xFFECF0FF);
+  static const expense = Color(0xFFBA4853);
+  static const border = Color(0xFFE6E8EE);
 }
 
 abstract final class Space {
@@ -26,8 +26,8 @@ abstract final class Space {
 
 abstract final class AppTheme {
   static ThemeData get light {
-    final scheme = ColorScheme.fromSeed(seedColor: AppColors.teal).copyWith(
-      primary: AppColors.teal,
+    final scheme = ColorScheme.fromSeed(seedColor: AppColors.accent).copyWith(
+      primary: AppColors.accent,
       surface: AppColors.surface,
       onSurface: AppColors.ink,
       error: AppColors.expense,
@@ -50,14 +50,14 @@ abstract final class AppTheme {
       ).apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF6F7F3),
+        fillColor: const Color(0xFFF7F8FA),
         contentPadding: const EdgeInsets.all(Space.lg),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: AppColors.border)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.teal, width: 1.5)),
+            borderSide: const BorderSide(color: AppColors.accent, width: 1.5)),
       ),
       filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
@@ -78,12 +78,12 @@ abstract final class AppTheme {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       listTileTheme: const ListTileThemeData(
-          iconColor: AppColors.teal, contentPadding: EdgeInsets.zero),
+          iconColor: AppColors.accent, contentPadding: EdgeInsets.zero),
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: Colors.transparent,
         elevation: 0,
         height: 72,
-        indicatorColor: AppColors.tealSoft,
+        indicatorColor: AppColors.accentSoft,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
       dividerColor: AppColors.border,

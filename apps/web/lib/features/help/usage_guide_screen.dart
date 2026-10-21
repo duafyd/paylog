@@ -31,7 +31,7 @@ class UsageGuideScreen extends StatelessWidget {
                 '3. 홈 화면의 paylog를 열어 가계부를 연결해요. 수동 기록에는 별도 APK가 필요하지 않아요.',
           ),
           BentoCard(
-            color: AppColors.tealSoft,
+            color: AppColors.accentSoft,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
