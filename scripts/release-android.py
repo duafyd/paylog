@@ -16,8 +16,8 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.0.1'
-VERSION_CODE = 3
+VERSION = '1.0.2'
+VERSION_CODE = 4
 ALIAS = 'paylog-release'
 REPOSITORY = 'duafyd/paylog'
 RELEASE_TAG = 'android-v' + VERSION

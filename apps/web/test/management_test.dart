@@ -1,4 +1,5 @@
 import 'dart:convert' hide json;
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:paylog/features/google_connection/google_oauth.dart';
@@ -10,6 +11,7 @@ import 'ledger_mutation_test.dart' show MutationServer;
 const categoryId = '77777777-7777-4777-8777-777777777777';
 
 class ManagementServer extends MutationServer {
+  bool loseDeviceAppendResponse = false;
   final tables = <String, List<List<dynamic>>>{
     for (final name in ['Categories', 'Cards', 'Devices', 'Review'])
       name: [managementHeaders[name]!]
@@ -37,6 +39,9 @@ class ManagementServer extends MutationServer {
           posts++;
           expect(request.url.queryParameters['valueInputOption'], 'RAW');
           target.add(List<dynamic>.from(jsonDecode(request.body)['values'][0]));
+          if (name == 'Devices' && loseDeviceAppendResponse) {
+            throw http.ClientException('Response lost');
+          }
           return json({});
         }
       }
@@ -63,6 +68,68 @@ class ManagementServer extends MutationServer {
 }
 
 void main() {
+  test(
+      'lost device registration response never retries or exports a credential',
+      () async {
+    final server = ManagementServer()..loseDeviceAppendResponse = true;
+    server.tables['Cards']!.add(
+        ['card', f.household, '카드', '15880000', '1234', f.memberA, true, '']);
+    await expectLater(
+        LedgerManagement(server.repository()).createAndroidConnection(
+            'https://script.google.com/macros/s/test/exec', f.memberA),
+        throwsA(isA<ConnectionFailure>()));
+    expect(server.posts, 1);
+    expect(server.tables['Devices']!.length, 2);
+  });
+
+  test('Android connection derives senders and persists only token hash',
+      () async {
+    final server = ManagementServer();
+    server.tables['Cards']!.add([
+      'card',
+      f.household,
+      '카드',
+      '1588-0000, 15880000',
+      '1234',
+      f.memberA,
+      true,
+      ''
+    ]);
+    final service = LedgerManagement(server.repository());
+    final connection = jsonDecode(await service.createAndroidConnection(
+        'https://script.google.com/macros/s/test/exec', f.memberA));
+    expect(connection['senders'], '15880000');
+    expect(connection['token'], matches(RegExp(r'^[0-9a-f]{64}$')));
+    final saved = server.tables['Devices']!.last;
+    expect(saved[0], connection['deviceId']);
+    expect(
+        saved[4], sha256.convert(utf8.encode(connection['token'])).toString());
+    expect(jsonEncode(server.tables).contains(connection['token']), false);
+    final other = jsonDecode(await service.createAndroidConnection(
+        'https://script.google.com/macros/s/test/exec', f.memberA));
+    expect(other['deviceId'], isNot(connection['deviceId']));
+    expect(other['token'], isNot(connection['token']));
+  });
+  test(
+      'Android connection rejects invalid endpoint, absent cards and non-owner',
+      () async {
+    final server = ManagementServer();
+    final service = LedgerManagement(server.repository());
+    await expectLater(
+        service.createAndroidConnection('https://evil.example/exec', f.memberA),
+        throwsA(isA<ConnectionFailure>()));
+    await expectLater(
+        service.createAndroidConnection(
+            'https://script.google.com/macros/s/test/exec', f.memberA),
+        throwsA(isA<ConnectionFailure>()));
+    await expectLater(
+        LedgerManagement(server.repository(subject: 'new-subject'))
+            .createAndroidConnection(
+                'https://script.google.com/macros/s/test/exec', f.memberA),
+        throwsA(isA<ConnectionFailure>()));
+    expect(server.posts, 0);
+  });
+
   test(
       'join binds only the current subject, and duplicate/inactive accounts cannot append again',
       () async {

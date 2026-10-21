@@ -25,3 +25,6 @@ firebase-debug*.log
 *.p12
 *.pfx
 *.keypass
+
+# Per-phone connection exports contain bearer credentials
+paylog-connection*.json

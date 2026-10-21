@@ -11,3 +11,13 @@ void downloadCsv(String csv) {
   link.click();
   link.remove();
 }
+
+void downloadConnection(String contents) {
+  final link = web.HTMLAnchorElement()
+    ..href =
+        'data:application/json;base64,${base64Encode(utf8.encode(contents))}'
+    ..download = 'paylog-connection.json';
+  web.document.body!.append(link);
+  link.click();
+  link.remove();
+}

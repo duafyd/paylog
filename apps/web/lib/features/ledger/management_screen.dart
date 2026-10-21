@@ -5,6 +5,7 @@ import '../google_connection/google_oauth.dart';
 import '../transactions/transaction_repository.dart';
 import 'sheets_ledger_repository.dart';
 import 'ledger_management.dart';
+import '../export/download.dart';
 
 class ManagementScreen extends ConsumerStatefulWidget {
   const ManagementScreen({super.key});
@@ -141,6 +142,99 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
     // cannot repeat an uncertain create request.
   }
 
+  Future<void> _connectAndroid() async {
+    final members =
+        _service!.repository.ledgerMembers.where((m) => m.active).toList();
+    if (members.isEmpty) return;
+    var memberId = members.first.id;
+    final endpoint = TextEditingController();
+    final chosen = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+                title: const Text('Android 간편 연결'),
+                content: SizedBox(
+                    width: 420,
+                    child: SingleChildScrollView(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text(
+                          '이 휴대폰을 사용할 가족을 선택하세요. 기기 ID와 연결 키는 자동으로 만들고, 문자 발신번호는 등록된 카드에서 가져와요.'),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                          initialValue: memberId,
+                          decoration:
+                              const InputDecoration(labelText: '사용할 가족'),
+                          items: members
+                              .map((m) => DropdownMenuItem(
+                                  value: m.id, child: Text(m.name)))
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) memberId = value;
+                          }),
+                      const SizedBox(height: 12),
+                      TextField(
+                          controller: endpoint,
+                          maxLength: 512,
+                          decoration: const InputDecoration(
+                              labelText: '가족 문자 수집 서버 주소',
+                              hintText:
+                                  'https://script.google.com/macros/s/…/exec')),
+                      const Text(
+                          '서버 최초 배포와 카드 등록은 소유자가 먼저 준비해야 해요. 휴대폰마다 파일을 따로 만드세요. 파일에는 연결 키가 포함되므로 공개하거나 채팅에 올리지 마세요.'),
+                    ]))),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('취소')),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('연결 파일 만들기'))
+                ]));
+    final address = endpoint.text;
+    WidgetsBinding.instance.addPostFrameCallback((_) => endpoint.dispose());
+    if (chosen != true ||
+        !mounted ||
+        !identical(_bound, ref.read(transactionRepositoryProvider))) {
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final contents =
+          await _service!.createAndroidConnection(address, memberId);
+      if (!mounted ||
+          !identical(_bound, ref.read(transactionRepositoryProvider))) {
+        return;
+      }
+      // A second explicit tap keeps mobile downloads inside a user gesture.
+      await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+                  title: const Text('연결 파일 준비 완료'),
+                  content: const Text(
+                      '이 휴대폰에 파일을 저장한 뒤 문자 수집 앱에서 “연결 파일 선택”을 누르세요. 연결 후 다운로드한 파일은 삭제해 주세요. 분실하면 기기 목록에서 비활성화하고 새로 만들 수 있어요.'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('닫기')),
+                    FilledButton(
+                        onPressed: () => downloadConnection(contents),
+                        child: const Text('연결 파일 저장'))
+                  ]));
+      if (mounted) setState(() => _rows = []);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e is ConnectionFailure
+            ? e.message
+            : '연결 파일을 준비하지 못했어요. 기기 목록을 확인해 주세요.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final repository = ref.watch(transactionRepositoryProvider);
@@ -151,12 +245,20 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
       Text('가계부 관리', style: Theme.of(context).textTheme.headlineSmall),
       const SizedBox(height: 12),
       const Text(
-          '소유자 전용 · Google 공유 권한은 Sheets 공유 메뉴에서 변경하세요. 카드 발신번호는 실제 번호만 입력하세요. 기기 토큰은 GAS 관리 절차에서 발급하며 앱에 표시하지 않습니다.'),
+          '소유자 전용 · Google 공유 권한은 Sheets 공유 메뉴에서 변경하세요. 카드 발신번호는 실제 번호만 입력하세요. Android는 간편 연결에서 기기를 자동 등록할 수 있어요.'),
       const SizedBox(height: 16),
       DropdownButtonFormField<String>(
           initialValue: _table,
           items: managementHeaders.keys
-              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+              .map((t) => DropdownMenuItem(
+                  value: t,
+                  child: Text(const {
+                    'Members': '가족',
+                    'Cards': '카드',
+                    'Categories': '카테고리',
+                    'Devices': '기기',
+                    'Review': '검토함'
+                  }[t]!)))
               .toList(),
           onChanged: _busy
               ? null
@@ -170,6 +272,11 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
             onPressed: _busy ? null : _load,
             icon: const Icon(Icons.refresh),
             label: const Text('목록 새로고침')),
+        if (_table == 'Devices')
+          FilledButton.icon(
+              onPressed: _busy ? null : _connectAndroid,
+              icon: const Icon(Icons.phone_android),
+              label: const Text('Android 간편 연결')),
         if (['Cards', 'Categories'].contains(_table))
           FilledButton.icon(
               onPressed: _busy ? null : () => _edit(null),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
 import '../google_connection/google_oauth.dart';
@@ -108,6 +109,82 @@ class LedgerManagement {
           '관리 탭 헤더가 없거나 달라요. SMS 관리 탭 준비 절차를 확인해 주세요.');
     }
     return rows;
+  }
+
+  /// Creates a per-phone credential. Only its digest is written to Sheets.
+  /// An uncertain append is never automatically retried or exported.
+  Future<String> createAndroidConnection(
+      String endpoint, String memberId) async {
+    endpoint = endpoint.trim();
+    if (!RegExp(r'^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$')
+        .hasMatch(endpoint)) {
+      throw const ConnectionFailure('소유자가 배포한 GAS /exec 주소를 입력해 주세요.');
+    }
+    await _owner();
+    if (!repository.ledgerMembers.any((m) => m.active && m.id == memberId)) {
+      throw const ConnectionFailure('활성 가족을 선택해 주세요.');
+    }
+    final cards = await list('Cards');
+    final senders = cards
+        .where((c) =>
+            c.values['enabled']?.toLowerCase() == 'true' &&
+            c.values['memberId'] == memberId)
+        .expand((c) => c.values['senderAllowlist']!.split(','))
+        .map((s) => s.replaceAll(RegExp(r'[\s()-]'), ''))
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    if (senders.isEmpty ||
+        senders.length > 50 ||
+        senders.any((s) => !RegExp(r'^\+?[0-9]{3,20}$').hasMatch(s))) {
+      throw const ConnectionFailure('선택한 가족의 활성 카드에 실제 문자 발신번호를 먼저 등록해 주세요.');
+    }
+    await _rows('Devices');
+    final random = Random.secure();
+    final token = List.generate(
+            32, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'))
+        .join();
+    final id = const Uuid().v4();
+    final cells = [
+      id,
+      _household,
+      memberId,
+      'android',
+      sha256.convert(utf8.encode(token)).toString(),
+      'true',
+      '',
+      seoulIso(seoulTime(DateTime.now()))
+    ];
+    try {
+      await _request('/values/Devices!A1:append', method: 'POST', query: {
+        'valueInputOption': 'RAW',
+        'insertDataOption': 'INSERT_ROWS'
+      }, body: {
+        'values': [cells]
+      });
+      final confirmed = await _rows('Devices');
+      final matches = confirmed
+          .skip(1)
+          .where((r) => (r as List).isNotEmpty && r.first == id)
+          .toList();
+      if (matches.length != 1 ||
+          _hash(matches.single as List, cells.length) !=
+              _hash(cells, cells.length)) {
+        throw const FormatException();
+      }
+    } catch (_) {
+      throw ConnectionFailure(
+          '기기 등록 결과를 확인하지 못했어요. 기기 목록에서 $id 항목이 있으면 비활성화한 뒤 다시 만들어 주세요.');
+    }
+    return jsonEncode({
+      'format': 'paylog-android-connection',
+      'version': 1,
+      'endpoint': endpoint,
+      'deviceId': id,
+      'token': token,
+      'senders': senders.join(',')
+    });
   }
 
   Future<void> save(String name, Map<String, String> values,
