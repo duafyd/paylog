@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
 import '../calendar/month_selector.dart';
+import '../calendar/summary_card.dart';
 import '../ledger/ledger_widgets.dart';
 import '../transactions/transaction.dart';
 import '../transactions/transaction_repository.dart';
@@ -16,10 +17,19 @@ class StatisticsScreen extends ConsumerWidget {
     final expense = totalOf(items, TransactionType.expense);
     return ListView(padding: const EdgeInsets.all(20), children: [
       Text('숫자로 보는 우리 집', style: Theme.of(context).textTheme.headlineSmall),
-      const SizedBox(height: 16),
+      const SizedBox(height: 6),
+      const Text('기록을 모아, 소비의 흐름을 살펴봐요.',
+          style: TextStyle(color: AppColors.muted)),
+      const SizedBox(height: 20),
       const MonthSelector(),
       const LedgerStatus(),
       const SizedBox(height: 20),
+      SummaryCard(
+          title: '이번 달 지출',
+          amount: expense,
+          primary: true,
+          label: '이번 달 기록을 기준으로 집계했어요'),
+      const SizedBox(height: 16),
       BentoCard(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

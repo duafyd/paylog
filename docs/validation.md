@@ -172,3 +172,15 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 이 변경의 로컬 검증: Flutter 포맷·정적 분석·테스트 63개·웹 릴리스 빌드 통과. 393px Chromium에서 JavaScript 비활성 상태로 두 문서의 표시·가로 넘침 없음·내부 링크를 검사하고 화면을 검수했다. Hosting 에뮬레이터에서 실제 HTML 응답(Flutter SPA fallback 아님), no-store 헤더와 CSS 응답을 확인했다. 실제 공개 URL은 웹 재배포 전에는 준비 완료로 간주하지 않는다.
 
 운영자가 공개 문의 이메일 `duafyd@gmail.com`을 지정해 두 문서에 반영했다. 일반 오류용 GitHub 문의와 개인정보 이메일 문의를 구분하고, Hosting 에뮬레이터 검사에 mailto 링크 확인을 추가해 통과했다.
+
+## 2026-10-21 · Bento Grid + Modern Minimal UI
+
+공통 테마를 웜 화이트·차콜·세이지·라임 팔레트로 개편했다. 지출/수입/잔액은 크기·색을 달리한 Bento 카드로, 달력 선택일은 고대비 차콜로 표시한다. 헤더·입력 필드·버튼·공통 카드·통계 요약을 통일하고, 하단 내비게이션은 너비를 제한한 독립 카드로 구성했다. 설정은 연결/관리·사용 가이드·데이터/약관 그룹으로 다시 배치했으며 각 항목에 버튼 접근성 레이블을 제공한다. 가이드에 `shortcuts://`로 같은 창에서 단축어 앱을 여는 버튼을 추가했다. 자동화 설정 자체는 사용자가 진행하며 실제 iPhone 실행은 미검증이다.
+
+검증: Flutter 포맷·정적 분석·기존 테스트 63개·릴리스 웹 빌드 통과. 기존 테스트의 360/390/393/402/430/1024px 및 360px 1.6배 글씨를 포함한다. Chromium 샘플 거래 등록/수정/삭제·통계·새로고침 회귀 검사 통과. 393×852 모바일과 1280×900 데스크톱에서 캡처하고 직접 확인했다. 실기기 검증은 포함하지 않는다.
+
+화면: [달력](screenshots/modern/calendar.png), [통계](screenshots/modern/statistics.png), [등록](screenshots/modern/entry.png), [설정](screenshots/modern/settings.png), [데스크톱](screenshots/modern/desktop.png).
+
+현재 개발 환경에서 Firebase 사용자 인증 사전 확인은 실패했다(로그인 계정 없음). 본인 Cloud Shell의 인증은 별도 환경에 있으므로 실제 웹 반영에는 `git pull --ff-only && bash scripts/deploy-cloud-shell.sh` 실행이 필요하다. APK 변경·재설치는 필요하지 않다.
+
+추가 회귀 검증: 테스트 OAuth ID로 별도 빌드한 Chromium의 Google 연결·Sheets 원장 모의 API smoke 2종도 통과했다. 새 설정 카드의 접근성 버튼 이름을 유지해 로그인 연결·원장 재접속·조회 전용·GET-only 저장 확인 경로를 검증했다. 이 검사는 실제 Google 계정이나 운영 시트를 변경하지 않는다.

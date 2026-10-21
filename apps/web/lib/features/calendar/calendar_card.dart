@@ -90,23 +90,29 @@ class DayCell extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 68),
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 1),
             decoration: BoxDecoration(
-                color: selected ? AppColors.tealSoft : null,
+                color: selected ? AppColors.dark : null,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color: today ? AppColors.teal : Colors.transparent)),
             child: Column(children: [
               Text('${date.day}',
                   style: TextStyle(
+                      color: selected ? Colors.white : AppColors.ink,
                       fontSize: 13,
                       fontWeight:
                           selected ? FontWeight.w800 : FontWeight.w500)),
               if (expense > 0)
                 Text('-${compact(expense)}',
-                    style:
-                        const TextStyle(fontSize: 9, color: AppColors.expense)),
+                    style: TextStyle(
+                        fontSize: 9,
+                        color: selected
+                            ? const Color(0xFFFFC9BA)
+                            : AppColors.expense)),
               if (income > 0)
                 Text('+${compact(income)}',
-                    style: const TextStyle(fontSize: 9, color: AppColors.teal)),
+                    style: TextStyle(
+                        fontSize: 9,
+                        color: selected ? AppColors.lime : AppColors.teal)),
             ]),
           ),
         )),

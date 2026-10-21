@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/platform/open_public_page.dart';
 import '../../core/widgets/bento_card.dart';
 
 class UsageGuideScreen extends StatelessWidget {
@@ -70,8 +71,22 @@ class UsageGuideScreen extends StatelessWidget {
                 '3. 홈 화면의 paylog에서 Google 로그인·Sheets 동의 후 가계부를 연결해요. Safari와 홈 화면 앱의 로그인 상태가 다를 수 있어요.\n'
                 'iPhone에는 Android APK를 설치하지 않아요. 홈 화면 웹앱에서 수입·지출을 직접 등록할 수 있어요.',
           ),
-          const _GuideCard(
+          _GuideCard(
             title: 'iPhone · 문자 전송 단축어',
+            action: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FilledButton.icon(
+                  onPressed: () =>
+                      openPublicPage('shortcuts://', sameWindow: true),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('단축어 앱 열기'),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                    '아이폰에서 누르면 단축어 앱이 열려요. 자동화 → + → 메시지는 직접 선택해 주세요. 열리지 않으면 단축어 앱이 설치되어 있는지 확인하고 직접 열어 주세요.'),
+              ],
+            ),
             body:
                 '웹앱은 iPhone 문자를 직접 읽을 수 없어요. 문자 전송은 Apple 단축어를 기기에서 직접 구성해야 해요. 바로 가져오는 서명된 .shortcut 파일은 아직 제공하지 않아요.\n\n'
                 '1. 소유자가 GAS를 준비하고 iOS 기기를 등록한 뒤 기기 UUID·원본 토큰·실제 발신번호를 받아요.\n'
@@ -102,9 +117,10 @@ class UsageGuideScreen extends StatelessWidget {
 }
 
 class _GuideCard extends StatelessWidget {
-  const _GuideCard({required this.title, required this.body});
+  const _GuideCard({required this.title, required this.body, this.action});
   final String title;
   final String body;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -115,6 +131,7 @@ class _GuideCard extends StatelessWidget {
             children: [
               SectionHeader(title),
               const SizedBox(height: 12),
+              if (action != null) ...[action!, const SizedBox(height: 16)],
               Text(body, style: const TextStyle(height: 1.6)),
             ],
           ),

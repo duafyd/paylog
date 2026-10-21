@@ -1,1 +1,1 @@
-void openPublicPage(String path) {}
+void openPublicPage(String path, {bool sameWindow = false}) {}

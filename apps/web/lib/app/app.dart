@@ -96,16 +96,16 @@ class AppShell extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 1120),
               child: Column(children: [
                 Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 12),
                     child: Row(children: [
                       Container(
                           width: 34,
                           height: 34,
                           decoration: BoxDecoration(
-                              color: AppColors.teal,
+                              color: AppColors.dark,
                               borderRadius: BorderRadius.circular(11)),
                           child: const Icon(Icons.grid_view_rounded,
-                              color: Colors.white, size: 21)),
+                              color: AppColors.lime, size: 21)),
                       const SizedBox(width: 10),
                       const Expanded(
                           child: FittedBox(
@@ -113,7 +113,7 @@ class AppShell extends ConsumerWidget {
                               alignment: Alignment.centerLeft,
                               child: Text('paylog',
                                   style: TextStyle(
-                                      fontSize: 24,
+                                      fontSize: 23,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: -1)))),
                       const SizedBox(width: 12),
@@ -138,25 +138,46 @@ class AppShell extends ConsumerWidget {
                 Expanded(child: child),
               ]),
             ))),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: const ['/google-connection', '/help', '/management']
-                  .contains(path)
-              ? 3
-              : paths.indexOf(path).clamp(0, 3),
-          onDestinationSelected: (index) => context.go(paths[index]),
-          destinations: const [
-            NavigationDestination(
-                icon: Icon(Icons.calendar_today_outlined),
-                selectedIcon: Icon(Icons.calendar_today),
-                label: '달력'),
-            NavigationDestination(
-                icon: Icon(Icons.donut_large_outlined), label: '통계'),
-            NavigationDestination(
-                icon: Icon(Icons.add_circle_outline),
-                selectedIcon: Icon(Icons.add_circle),
-                label: '등록'),
-            NavigationDestination(icon: Icon(Icons.tune), label: '설정'),
-          ],
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                      decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(color: AppColors.border)),
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.circular(26),
+                          child: NavigationBar(
+                            selectedIndex: const [
+                              '/google-connection',
+                              '/help',
+                              '/management'
+                            ].contains(path)
+                                ? 3
+                                : paths.indexOf(path).clamp(0, 3),
+                            onDestinationSelected: (index) =>
+                                context.go(paths[index]),
+                            destinations: const [
+                              NavigationDestination(
+                                  icon: Icon(Icons.calendar_today_outlined),
+                                  selectedIcon: Icon(Icons.calendar_today),
+                                  label: '달력'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.donut_large_outlined),
+                                  label: '통계'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.add_circle_outline),
+                                  selectedIcon: Icon(Icons.add_circle),
+                                  label: '등록'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.tune), label: '설정'),
+                            ],
+                          ))))),
         ),
       );
 }

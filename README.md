@@ -99,3 +99,5 @@ git pull --ff-only && bash scripts/deploy-cloud-shell.sh && python3 scripts/rele
 ```
 
 최초 APK 릴리스에는 본인이 정하는 서명키 전용 새 암호(12자 이상)가 필요합니다. 암호화된 키 파일과 암호를 안전하게 백업하고 채팅·Git에 올리지 마세요. 정식 APK 다운로드 사이트는 스크립트 성공 후 이용할 수 있습니다. [상세 배포 절차](docs/deployment.md), [검증 결과와 미검증 항목](docs/validation.md)을 확인하세요.
+
+현재 웹 UI는 **Bento Grid + Modern Minimal** 콘셉트로, 웜 화이트 배경·차콜 요약 카드·세이지와 라임 포인트·독립형 하단 내비게이션을 사용합니다. [변경된 화면 캡처와 검증 결과](docs/validation.md)를 확인할 수 있습니다.

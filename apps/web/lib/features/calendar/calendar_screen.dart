@@ -24,7 +24,7 @@ class CalendarScreen extends ConsumerWidget {
     return ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
         children: [
-          const Text('함께 쓰고, 가볍게 모으는',
+          const Text('우리 집의 작은 기록',
               style: TextStyle(color: AppColors.muted, fontSize: 13)),
           const SizedBox(height: 4),
           const MonthSelector(),
@@ -35,7 +35,7 @@ class CalendarScreen extends ConsumerWidget {
               income: income,
               count:
                   items.where((t) => t.type == TransactionType.expense).length),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           LayoutBuilder(builder: (context, constraints) {
             final calendar =
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
