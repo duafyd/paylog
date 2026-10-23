@@ -109,3 +109,10 @@ Cloud Shell의 저장소 루트에서 `git pull --ff-only && bash scripts/deploy
 홈페이지 `<head>`에 HTML 인증 메타태그와 GA4 `G-9FWZ8L9KE5`의 Google 태그를 포함한다. 소유권 확인을 위한 설치이며 `ga-disable-G-9FWZ8L9KE5=true`를 gtag 로드 전에 설정해 분석 이벤트 수집을 비활성화한다. 자동 페이지뷰·Google signals·광고 개인화도 끈다. 외부 스크립트 다운로드 요청은 발생할 수 있으므로 개인정보처리방침에 이를 고지한다. 분석을 활성화하려면 별도 데이터 처리 검토가 필요하다.
 
 소유자가 웹 배포 후 같은 Google 계정의 Search Console → 소유권 인증 → Google 애널리틱스 → 확인을 실행한다. 해당 GA 속성의 수정 권한이 필요하다. 코드 설치 검증은 실제 Search Console 승인이나 OAuth 브랜딩 오류 해소를 보장하지 않는다. 기존 HTML 파일/메타태그 인증은 유지한다.
+
+
+### Google 태그 관리자 추가 확인
+
+컨테이너 `GTM-KQQ9XCLC`의 제공된 스니펫을 홈페이지 `<head>`에 삽입하고 `<body>` 바로 뒤에 noscript iframe을 둔다. GA4 수집 비활성화 설정은 GTM 로드보다 먼저 유지한다. 앱은 GTM dataLayer에 거래·문자·계정·토큰 정보를 추가하지 않는다. 컨테이너에 분석/광고 태그를 새로 게시하는 작업은 이 변경에 포함하지 않는다.
+
+소유자는 웹 배포 후 같은 Google 계정으로 Search Console → 소유권 인증 → Google 태그 관리자 → 확인을 실행한다. 해당 컨테이너에 게시 권한이 필요하며, 웹 소스 변경과 GTM 작업공간 게시는 서로 다른 작업이다. 스니펫 설치는 Search Console 인증 또는 OAuth 브랜딩 통과를 보장하지 않는다. Google이 별도 게시 상태 문제를 표시하면 그 오류를 확인하고 대응한다.
