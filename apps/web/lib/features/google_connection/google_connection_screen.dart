@@ -64,7 +64,7 @@ class _GoogleConnectionScreenState
           style: TextStyle(color: AppColors.muted)),
       const SizedBox(height: 20),
       const BentoCard(
-          color: AppColors.tealSoft,
+          color: AppColors.accentSoft,
           child: Text(
               '접근 확인 PoC는 가계부와 별개로 동작해요. 아래에서 실제 원장을 연결하면 달력·등록·통계가 Sheets 모드로 전환됩니다. 샘플 거래는 복사하지 않습니다.')),
       const SizedBox(height: 16),

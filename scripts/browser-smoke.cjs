@@ -46,6 +46,20 @@ fs.mkdirSync(screenshotDir,{recursive:true});
  await snapshotContains('거래를 저장했어요.');
  await scroll(-5000);
  await snapshotContains('₩4,300,000');
+ // Follow the real detail/edit/delete routes in the compiled web app.
+ await scroll(5000);
+ await page.getByRole('button',{name:/브라우저 검증 거래/}).click();
+ await snapshotContains('기록 상세');
+ await page.getByRole('button',{name:'기록 수정',exact:true}).click();
+ await scroll(-5000);
+ await fill('거래 금액','27000');
+ await page.getByRole('button',{name:'기록 저장하기',exact:true}).click();
+ await snapshotContains('거래를 저장했어요.');
+ await scroll(-5000);await snapshotContains('₩207,600');
+ await scroll(5000);await page.getByRole('button',{name:/브라우저 검증 거래/}).click();
+ await page.getByRole('button',{name:'기록 삭제',exact:true}).click();
+ await page.getByRole('button',{name:'삭제',exact:true}).click();
+ await scroll(-5000);await snapshotContains('₩180,600');
  await page.reload({waitUntil:'networkidle'});
  await page.locator('#loading').waitFor({state:'detached'});
  await page.locator('flt-semantics-placeholder').evaluate(el=>el.click());
@@ -55,6 +69,6 @@ fs.mkdirSync(screenshotDir,{recursive:true});
  const registrations=await page.evaluate(async()=>await navigator.serviceWorker.getRegistrations().then(items=>items.length));
  assert.equal(registrations,0);
  assert.deepEqual(errors,[]);
- console.log('PASS: 브라우저 지출 등록, 통계 반영, 수입 등록, 세션 초기화, 서비스워커 미등록, JS 오류 없음');
+ console.log('PASS: 브라우저 수입·지출 등록/수정/삭제, 통계 반영, 세션 초기화, 서비스워커 미등록, JS 오류 없음');
  } finally { await browser.close(); }
 })().catch(e=>{console.error(e);process.exit(1)});

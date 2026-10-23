@@ -1,9 +1,11 @@
 # paylog
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·수동 등록·통계가 해당 시트를 사용합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
+가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·거래 등록/수정/삭제·통계가 해당 시트를 사용합니다. 소유자 관리 화면, SMS 수집 GAS, Android 보조 앱과 iOS 설정 가이드도 포함합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)
+- 배포 사전 확인: `python3 scripts/deploy-hosting.py` · 실제 배포: `python3 scripts/deploy-hosting.py --deploy` ([필수 계정/설정](docs/deployment.md))
+- [SMS/GAS 운영 설정](docs/sms-setup.md) · [Android 앱](apps/sms_android/README.md) · [iOS 단축어](ios/README.md) · [배포/CI](docs/deployment.md)
 - [아키텍처](docs/architecture.md) · [검증 결과](docs/validation.md)
 
 ## 실행
@@ -33,7 +35,22 @@ flutter build web --release --no-web-resources-cdn
 python3 -m http.server 8080 --directory build/web
 ```
 
-전체 검증은 저장소 루트에서 `bash scripts/check.sh`로 실행할 수도 있습니다.
+웹 전체 검증은 저장소 루트에서 `bash scripts/check.sh`로 실행할 수도 있습니다. 추가 서버/Android 검증:
+
+```sh
+node --test services/sms/test/*.test.js
+node services/sms/build.mjs
+# JDK 21 + SDK 36 + Gradle 8.13
+bash scripts/check-android.sh
+# 빌드된 웹의 Hosting 설정만 로컬 검증 (실제 배포 없음)
+npx firebase-tools@14.22.0 emulators:exec --only hosting --project demo-paylog 'node scripts/hosting-smoke.cjs'
+```
+
+거래를 눌러 상세→수정/삭제를 사용할 수 있다. CSV 내보내기는 설정 화면에서 제공하며 스프레드시트 수식 주입 문자를 무력화한다. 삭제는 Sheets `deletedAt`을 기록하여 합계에서 제외한다. 설정→가계부 관리에서는 실제 연결된 원장의 활성 소유자만 멤버·카드·카테고리·기기·검토함을 관리한다. SMS 관리 탭은 소유자의 GAS 설정 함수로 먼저 준비한다. 샘플 모드에는 관리 데이터가 없다.
+
+가족은 소유자가 Google Sheets 공유 메뉴에서 먼저 편집자로 초대한 뒤 원장을 연결하고 표시 이름으로 참여한다. 앱 역할 변경은 Google 공유 ACL을 변경하지 않는다. 비활성 계정 재참여는 차단하며 마지막 활성 소유자는 해제할 수 없다. 사용자 정의 카테고리는 UUID로 참조하고 비활성화해도 과거 거래에서 유지한다. 상세 운영 절차는 위 문서를 따른다.
+
+`.github/workflows/verify.yml`은 웹·SMS·Android 검사와 산출물 보관을 구성한다. 실제 Hosting/GAS 배포는 계정·프로젝트 설정이 필요하다. 실제 기기 검증은 이번 작업에서 제외했다. Apple 서명 `.shortcut`은 이 Linux 환경에서 생성하지 못해 JSON 구성도와 수동 설정 가이드를 제공한다.
 
 추가 브라우저 smoke test는 정적 서버를 실행한 상태에서 별도로 실행할 수 있습니다. Node.js와 Chromium이 필요하며, Playwright는 앱 의존성과 분리해 설치합니다.
 
@@ -70,3 +87,21 @@ apps/web/lib/
 ```
 
 Noto Sans KR은 앱에 포함하며 SIL Open Font License는 `apps/web/assets/fonts/OFL.txt`에 있습니다. 샘플 모드에는 API 키·인증 토큰이 필요하지 않습니다. Google 연결 PoC에는 공개 웹 OAuth 클라이언트 ID를 빌드 설정으로 전달합니다. 앞으로도 OAuth 토큰이나 기기 수집 비밀키를 웹 번들·Git에 포함하지 않습니다.
+
+## 앱 내 사용 가이드와 정식 APK
+
+웹앱 **설정 → Android · iPhone 사용 가이드**에서 홈 화면 설치, Google/가계부 연결, Android 문자 수집 앱 설치·설정, iPhone 단축어 구성과 문제 해결 방법을 볼 수 있습니다. Android 보조 앱에도 **사용 방법 보기**가 있습니다.
+
+Firebase와 GitHub CLI(`gh auth login --hostname github.com --git-protocol https --web`)에 로그인한 본인 Cloud Shell의 저장소 루트에서 아래 명령으로 최신 웹 가이드와 정식 서명 APK를 각각 배포합니다.
+
+```sh
+git pull --ff-only && bash scripts/deploy-cloud-shell.sh && python3 scripts/release-android.py
+```
+
+최초 APK 릴리스에는 본인이 정하는 서명키 전용 새 암호(12자 이상)가 필요합니다. 암호화된 키 파일과 암호를 안전하게 백업하고 채팅·Git에 올리지 마세요. 정식 APK 다운로드 사이트는 스크립트 성공 후 이용할 수 있습니다. [상세 배포 절차](docs/deployment.md), [검증 결과와 미검증 항목](docs/validation.md)을 확인하세요.
+
+현재 웹 UI는 **Bento Grid + Modern Minimal** 콘셉트로, 화이트 배경·차콜 요약 카드·블루 포인트·독립형 하단 내비게이션을 사용합니다. [변경된 화면 캡처와 검증 결과](docs/validation.md)를 확인할 수 있습니다.
+
+## 가족용 정식 배포
+
+[가족용 배포·운영 가이드](docs/FAMILY_RELEASE.md)에 최신 공개 상태, 가족 계정 설정, 백업·복구 절차를 정리했습니다. 본인 Cloud Shell에서 최신 코드를 받은 뒤 `bash scripts/release-family.sh`를 실행하면 웹·APK 배포와 공개 정책 문서·빌드 해시·APK 버전/해시 검증을 순서대로 수행합니다. 조회만 하려면 `python3 scripts/verify-release.py`를 실행합니다.

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const background = Color(0xFFF7F8FA);
+  static const background = Color(0xFFF5F6F8);
   static const surface = Colors.white;
-  static const ink = Color(0xFF202733);
-  static const muted = Color(0xFF606B7A);
-  static const teal = Color(0xFF207A75);
-  static const tealSoft = Color(0xFFE7F4F1);
-  static const expense = Color(0xFFB9414A);
-  static const border = Color(0xFFE9EDF0);
+  static const dark = Color(0xFF20242C);
+  static const highlight = Color(0xFFFFFFFF);
+  static const secondarySurface = Color(0xFFF0F2F6);
+  static const ink = Color(0xFF20242C);
+  static const muted = Color(0xFF667085);
+  static const accent = Color(0xFF365EDC);
+  static const accentSoft = Color(0xFFECF0FF);
+  static const expense = Color(0xFFBA4853);
+  static const border = Color(0xFFE6E8EE);
 }
 
 abstract final class Space {
@@ -23,8 +26,8 @@ abstract final class Space {
 
 abstract final class AppTheme {
   static ThemeData get light {
-    final scheme = ColorScheme.fromSeed(seedColor: AppColors.teal).copyWith(
-      primary: AppColors.teal,
+    final scheme = ColorScheme.fromSeed(seedColor: AppColors.accent).copyWith(
+      primary: AppColors.accent,
       surface: AppColors.surface,
       onSurface: AppColors.ink,
       error: AppColors.expense,
@@ -36,9 +39,9 @@ abstract final class AppTheme {
       fontFamily: 'NotoSansKR',
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
-            fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1.2),
+            fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: -1.5),
         headlineSmall: TextStyle(
-            fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -.7),
+            fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: -1.0),
         titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         bodyLarge: TextStyle(fontSize: 16, height: 1.6),
@@ -47,20 +50,40 @@ abstract final class AppTheme {
       ).apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.background,
+        fillColor: const Color(0xFFF7F8FA),
         contentPadding: const EdgeInsets.all(Space.lg),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.accent, width: 1.5)),
       ),
       filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
         minimumSize: const Size(48, 52),
+        backgroundColor: AppColors.dark,
+        foregroundColor: Colors.white,
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       )),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+        minimumSize: const Size(48, 50),
+        side: const BorderSide(color: AppColors.border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      )),
+      chipTheme: ChipThemeData(
+          side: BorderSide.none,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+      listTileTheme: const ListTileThemeData(
+          iconColor: AppColors.accent, contentPadding: EdgeInsets.zero),
       navigationBarTheme: const NavigationBarThemeData(
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.tealSoft,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        height: 72,
+        indicatorColor: AppColors.accentSoft,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
       dividerColor: AppColors.border,
