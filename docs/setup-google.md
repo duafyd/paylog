@@ -102,3 +102,10 @@ NODE_PATH=/tmp/paylog-browser-tools/node_modules CHROMIUM_PATH=/usr/bin/chromium
 두 문서는 Flutter 실행·Google 로그인 없이 열리는 HTML이다. 앱 설정과 초기 HTML에도 링크가 있다. 개인정보 문의처는 운영자가 지정한 `duafyd@gmail.com`이며, GitHub Issues는 일반 오류 문의용으로 구분한다. 비밀번호·인증 코드·기기 토큰은 이메일로도 보내지 않도록 안내한다. 문서는 실제 데이터 처리 방식·운영 정보가 변경될 때 함께 관리해야 한다.
 
 Cloud Shell의 저장소 루트에서 `git pull --ff-only && bash scripts/deploy-cloud-shell.sh`로 웹만 재배포한다. 페이지 생성·배포가 Google OAuth 검증 승인이나 게시 상태 변경을 자동으로 수행하지는 않는다. 홈페이지 도메인 소유권, 개발자 연락처, 요청 범위와 검증 항목은 Google Console의 실제 요구사항을 따른다.
+
+
+### Search Console 추가 확인 태그
+
+홈페이지 `<head>`에 HTML 인증 메타태그와 GA4 `G-9FWZ8L9KE5`의 Google 태그를 포함한다. 소유권 확인을 위한 설치이며 `ga-disable-G-9FWZ8L9KE5=true`를 gtag 로드 전에 설정해 분석 이벤트 수집을 비활성화한다. 자동 페이지뷰·Google signals·광고 개인화도 끈다. 외부 스크립트 다운로드 요청은 발생할 수 있으므로 개인정보처리방침에 이를 고지한다. 분석을 활성화하려면 별도 데이터 처리 검토가 필요하다.
+
+소유자가 웹 배포 후 같은 Google 계정의 Search Console → 소유권 인증 → Google 애널리틱스 → 확인을 실행한다. 해당 GA 속성의 수정 권한이 필요하다. 코드 설치 검증은 실제 Search Console 승인이나 OAuth 브랜딩 오류 해소를 보장하지 않는다. 기존 HTML 파일/메타태그 인증은 유지한다.
