@@ -17,6 +17,22 @@ class UsageGuideScreen extends StatelessWidget {
           const SizedBox(height: 8),
           const Text('Android와 iPhone에서 설치부터 가계부 기록까지'),
           const SizedBox(height: 20),
+          _GuideCard(
+            title: '새 공동 가계부 · 문자 자동 기록',
+            body: '수동으로 등록한 거래와 문자에서 만든 거래 모두 달력에서 눌러 수정·삭제할 수 있어요.\n'
+                'Android는 설정 → 문자 자동 기록 · 기기 연결에서 파일을 만들고 문자 앱 1.1.0 이상으로 가져와요. 웹을 열어 두면 등록한 하나카드 승인을 자동 기록하고, 닫혀 있었다면 다음 접속 때 반영해요.\n'
+                'iPhone은 연결 화면에서 iPhone 설정 파일을 만들고 아래 레시피대로 단축어와 메시지 자동화를 직접 구성해야 해요. 전송된 승인은 웹 수집함에서 승인 기록 추가로 확인해요. 서명된 단축어 자동 설치 파일은 제공하지 않아요.\n'
+                '취소 문자는 원래 거래를 직접 수정·삭제한 뒤 수집함에서 확인 완료를 눌러요. 다른 카드사·알림 수집·과거 문자함은 지원하지 않아요.',
+            action: Wrap(spacing: 8, children: [
+              TextButton(
+                  onPressed: () => context.go('/sms-devices'),
+                  child: const Text('문자 수집함 · 기기 연결 열기')),
+              TextButton(
+                  onPressed: () =>
+                      openPublicPage('/ios-firestore-shortcut-template.json'),
+                  child: const Text('iPhone Firestore 단축어 레시피')),
+            ]),
+          ),
           const _GuideCard(
             title: '먼저 가계부 연결하기',
             body:

@@ -6,6 +6,11 @@ service cloud.firestore {
         && request.auth.token.firebase.sign_in_provider == 'password'
         && request.auth.token.email.matches('^[a-z][a-z0-9_]{3,19}@accounts[.]paylog[.]invalid$');
     }
+    function captureAccount() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider == 'password'
+        && request.auth.token.email.matches('^device_[a-f0-9]{32}@devices[.]paylog[.]invalid$');
+    }
+    function captureDevice(uid) { return /databases/$(database)/documents/smsDevices/$(uid); }
     function profile(uid) { return /databases/$(database)/documents/profiles/$(uid); }
     function home(hid) { return /databases/$(database)/documents/households/$(hid); }
     function person(hid, uid) { return /databases/$(database)/documents/households/$(hid)/members/$(uid); }
@@ -19,6 +24,24 @@ service cloud.firestore {
       let invite = get(invitation(hash)).data;
       return hash.matches('^[a-f0-9]{64}$') && invite.householdId == hid
         && invite.expiresAt > request.time;
+    }
+    match /smsDevices/{uid} {
+      allow get: if (captureAccount() && request.auth.uid == uid)
+        || (authenticated() && member(resource.data.householdId));
+      allow list: if authenticated() && request.query.limit != null && request.query.limit <= 50
+        && member(resource.data.householdId);
+      allow create: if authenticated()
+        && request.resource.data.keys().hasOnly(['householdId','ownerUid','name','enabled','senders','cards','platform','createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid && member(request.resource.data.householdId)
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.enabled == true && request.resource.data.platform in ['android','ios']
+        && request.resource.data.senders is list && request.resource.data.senders.size() > 0 && request.resource.data.senders.size() <= 10
+        && request.resource.data.cards is list && request.resource.data.cards.size() > 0 && request.resource.data.cards.size() <= 10
+        && request.resource.data.createdAt == request.time;
+      allow update: if authenticated() && member(resource.data.householdId)
+        && (resource.data.ownerUid == request.auth.uid || get(home(resource.data.householdId)).data.ownerId == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['enabled']) && request.resource.data.enabled is bool;
+      allow delete: if false;
     }
     match /profiles/{uid} {
       allow get: if authenticated() && request.auth.uid == uid;
@@ -56,6 +79,45 @@ service cloud.firestore {
             (request.resource.data.role == 'member' && exists(home(hid))
               && validInvite(request.resource.data.inviteHash, hid))
           );
+      }
+      match /smsReceipts/{messageId} {
+        allow get: if member(hid);
+        allow list, update, delete: if false;
+        allow create: if member(hid) && messageId.matches('^[a-f0-9]{32,64}$')
+          && request.resource.data.keys().hasOnly(['bodyHash','sender','transactionId','createdAt'])
+          && request.resource.data.bodyHash.matches('^[a-f0-9]{64}$') && request.resource.data.sender is string
+          && request.resource.data.createdAt == request.time
+          && (request.resource.data.transactionId == '' || (request.resource.data.transactionId == 'sms_' + messageId
+            && existsAfter(/databases/$(database)/documents/households/$(hid)/transactions/$(request.resource.data.transactionId))));
+      }
+      match /smsInbox/{sid} {
+        allow get: if member(hid) || (captureAccount() && resource.data.deviceId == request.auth.uid
+          && get(captureDevice(request.auth.uid)).data.householdId == hid);
+        allow list: if member(hid) && request.query.limit != null && request.query.limit <= 50;
+        function permittedCapture() {
+          let d = request.resource.data;
+          let device = get(captureDevice(request.auth.uid)).data;
+          return device.enabled == true && device.householdId == hid && exists(person(hid,device.ownerUid))
+            && d.keys().hasOnly(['deviceId','messageId','sender','body','bodyHash','receivedAt','createdAt','status','transactionId','handledAt'])
+            && d.deviceId == request.auth.uid && d.messageId is string && d.messageId.matches('^[a-f0-9]{32,64}$')
+            && sid == request.auth.uid + '_' + d.messageId
+            && d.sender is string && d.sender in device.senders
+            && d.body is string && d.body.size() > 0 && d.body.size() <= 4096
+            && d.body.matches('(?s).*하나[0-9*]{4,12}.*(승인|취소).*')
+            && !d.body.matches('(?is).*(인증번호|비밀번호|OTP).*')
+            && d.bodyHash is string && d.bodyHash.matches('^[a-f0-9]{64}$')
+            && d.receivedAt is timestamp && d.receivedAt >= request.time - duration.value(7,'d')
+            && d.receivedAt <= request.time + duration.value(5,'m')
+            && d.createdAt == request.time && d.status == 'pending' && d.transactionId == '' && d.handledAt == null;
+        }
+        allow create: if captureAccount() && permittedCapture();
+        allow update: if member(hid) && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','transactionId','handledAt','body'])
+          && request.resource.data.body == '' && request.resource.data.handledAt == request.time
+          && ((request.resource.data.status == 'dismissed' && request.resource.data.transactionId == resource.data.transactionId)
+            || (request.resource.data.status == 'imported' && request.resource.data.transactionId == 'sms_' + resource.data.messageId
+              && existsAfter(/databases/$(database)/documents/households/$(hid)/transactions/$(request.resource.data.transactionId))));
+        allow delete: if false;
       }
       match /transactions/{tid} {
         allow get: if member(hid);

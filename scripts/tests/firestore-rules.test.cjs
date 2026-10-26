@@ -75,3 +75,56 @@ test('financial records require membership, valid fields and monotonic revisions
  await assertFails(getDocs(collection(owner,'households','family','transactions')));
  await assertSucceeds(getDocs(query(collection(owner,'households','family','transactions'),limit(500))));
 });
+
+function capture(uid='capture') {return env.authenticatedContext(uid,{email:'device_'+'a'.repeat(32)+'@devices.paylog.invalid',firebase:{sign_in_provider:'password'}}).firestore()}
+async function bind(owner,uid='capture',home='family',platform='android') {
+ return setDoc(doc(owner,'smsDevices',uid),{householdId:home,ownerUid:'owner',name:'테스트 휴대폰',enabled:true,senders:['18001111'],cards:['하나1234'],platform,createdAt:serverTimestamp()});
+}
+function sms(uid='capture',id='a'.repeat(64)) {return {deviceId:uid,messageId:id,sender:'18001111',body:'하나1234승인\n12,000원\n10/26 12:00 테스트 가게',bodyHash:'b'.repeat(64),receivedAt:Timestamp.now(),createdAt:serverTimestamp(),status:'pending',transactionId:'',handledAt:null}}
+test('capture accounts are scoped to their own inbox, not human ledgers or account profiles',async()=>{
+ const owner=db('owner'), phone=capture();await create(owner,'owner','family');await bind(owner);
+ const id='capture_'+'a'.repeat(64), target=doc(phone,'households','family','smsInbox',id);
+ await assertSucceeds(setDoc(target,sms()));
+ await assertSucceeds(getDoc(target));
+ await assertFails(getDoc(doc(phone,'profiles','owner')));
+ await assertFails(getDoc(doc(phone,'households','family')));
+ await assertFails(getDocs(query(collection(phone,'households','family','smsInbox'),limit(50))));
+ await assertFails(setDoc(doc(phone,'households','family','transactions','forged'),transaction('owner')));
+ await assertFails(updateDoc(target,{status:'dismissed',body:'',handledAt:serverTimestamp()}));
+ await assertFails(setDoc(doc(phone,'households','other','smsInbox',id),sms()));
+ await assertFails(getDoc(doc(db('other'),'households','family','smsInbox',id)));
+ await assertFails(setDoc(doc(capture('unbound'),'households','family','smsInbox','unbound_'+'a'.repeat(64)),sms('unbound')));
+});
+test('device revocation, sender filters, immutable receipts and credential-message exclusion are enforced',async()=>{
+ const owner=db('owner'), phone=capture();await create(owner,'owner','family');await bind(owner);
+ const target=doc(phone,'households','family','smsInbox','capture_'+'a'.repeat(64));
+ await assertFails(setDoc(target,{...sms(),sender:'unregistered'}));
+ await assertFails(setDoc(target,{...sms(),body:'하나1234승인 인증번호 123456'}));
+ await assertFails(setDoc(target,{...sms(),body:'하나1234승인 OTP 123456'}));
+ await assertFails(setDoc(target,{...sms(),receivedAt:Timestamp.fromMillis(Date.now()-8*86400000)}));
+ await assertSucceeds(setDoc(target,sms()));
+ await assertFails(setDoc(target,sms()));
+ await assertFails(updateDoc(doc(owner,'smsDevices','capture'),{ownerUid:'other'}));
+ await assertSucceeds(updateDoc(doc(owner,'smsDevices','capture'),{enabled:false}));
+ await assertFails(setDoc(doc(phone,'households','family','smsInbox','capture_'+'c'.repeat(64)),sms('capture','c'.repeat(64))));
+});
+test('human review erases raw text; imported status requires an existing transaction',async()=>{
+ const owner=db('owner'), phone=capture();await create(owner,'owner','family');await bind(owner);
+ const id='capture_'+'a'.repeat(64), source=doc(owner,'households','family','smsInbox',id);
+ await setDoc(doc(phone,'households','family','smsInbox',id),sms());
+ await assertFails(updateDoc(source,{status:'imported',transactionId:'sms_'+'a'.repeat(64),body:'',handledAt:serverTimestamp()}));
+ await assertFails(updateDoc(source,{status:'dismissed',handledAt:serverTimestamp()}));
+ const batch=writeBatch(owner);batch.set(doc(owner,'households','family','transactions','sms_'+'a'.repeat(64)),transaction('owner'));
+ batch.update(source,{status:'imported',transactionId:'sms_'+'a'.repeat(64),body:'',handledAt:serverTimestamp()});
+ await assertSucceeds(batch.commit());
+ await assertFails(updateDoc(source,{status:'pending'}));
+ const value=(await getDoc(source)).data();assert.equal(value.body,'');assert.equal(value.bodyHash,'b'.repeat(64));
+});
+test('dismissed source receipts suppress later capture without exposing them to phones',async()=>{
+ const owner=db('owner');await create(owner,'owner','family');const key='d'.repeat(64);
+ const receipt=doc(owner,'households','family','smsReceipts',key);
+ await assertSucceeds(setDoc(receipt,{bodyHash:'b'.repeat(64),sender:'18001111',transactionId:'',createdAt:serverTimestamp()}));
+ await assertFails(updateDoc(receipt,{transactionId:'sms_'+key}));
+ await assertFails(getDoc(doc(capture(),'households','family','smsReceipts',key)));
+ await assertFails(deleteDoc(receipt));
+});

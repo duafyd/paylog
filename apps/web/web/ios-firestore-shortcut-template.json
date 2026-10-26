@@ -1,0 +1,40 @@
+{
+  "format": "paylog-ios-firestore-recipe",
+  "version": 1,
+  "note": "Apple 단축어에서 직접 구성하는 레시피이며 서명된 .shortcut 파일이 아닙니다. 웹에서 iPhone 연결 파일을 먼저 생성하세요.",
+  "configurationFile": "paylog-connection.json",
+  "steps": [
+    "설정 파일의 JSON을 사전으로 읽습니다. 비밀 기기 계정이므로 단축어/설정 파일을 공유하지 않습니다.",
+    "메시지 자동화가 전달한 본문을 사용합니다. 하나[0-9*]{4,12}와 승인/취소가 없거나 인증번호/비밀번호/OTP가 포함되면 종료합니다.",
+    "현재 날짜를 ISO 8601(시간대 포함)로 저장합니다. UUID를 생성하고 하이픈 제거·소문자 변환한 32자리 messageId를 저장합니다. 한 실행의 재시도에는 이 값과 날짜를 그대로 재사용합니다.",
+    "본문의 SHA-256 소문자 64자리 값을 bodyHash로 저장합니다.",
+    "auth URL로 email/password/returnSecureToken=true JSON을 POST합니다. idToken과 localId를 메모리에서 사용하며 localId가 설정 deviceId와 다르면 종료합니다.",
+    "아래 commitTemplate의 자리표시자를 사전 값으로 채웁니다. 본문은 JSON 텍스트 치환이 아니라 사전의 stringValue로 넣어 따옴표와 줄바꿈을 올바르게 직렬화합니다.",
+    "commit URL에 Authorization: Bearer [idToken], Content-Type: application/json으로 JSON 사전을 POST합니다.",
+    "writeResults가 있으면 수집 완료입니다. 오류 시 성공으로 표시하지 않습니다. 원본 문서 충돌은 재전송일 수 있으므로 새 ID로 무조건 다시 보내지 말고 웹 수집함을 확인합니다.",
+    "자동화 → 메시지 → 실제 카드사 발신자로 제한 → 즉시 실행(지원 iOS)을 설정합니다. 고유 SMS 원본 ID가 없어 수집함에서 승인 기록 추가를 눌러 확인합니다. 취소는 원거래를 직접 수정·삭제합니다."
+  ],
+  "authUrl": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=[apiKey]",
+  "authJson": {"email": "[email]", "password": "[password]", "returnSecureToken": true},
+  "commitUrl": "https://firestore.googleapis.com/v1/projects/[projectId]/databases/(default)/documents:commit",
+  "commitTemplate": {
+    "writes": [{
+      "update": {
+        "name": "projects/[projectId]/databases/(default)/documents/households/[householdId]/smsInbox/[deviceId]_[messageId]",
+        "fields": {
+          "deviceId": {"stringValue": "[deviceId]"},
+          "messageId": {"stringValue": "[messageId]"},
+          "sender": {"stringValue": "[등록한 실제 발신번호]"},
+          "body": {"stringValue": "[메시지 본문]"},
+          "bodyHash": {"stringValue": "[본문 SHA-256]"},
+          "receivedAt": {"timestampValue": "[원본 실행의 ISO 8601 날짜]"},
+          "status": {"stringValue": "pending"},
+          "transactionId": {"stringValue": ""},
+          "handledAt": {"nullValue": null}
+        }
+      },
+      "currentDocument": {"exists": false},
+      "updateTransforms": [{"fieldPath": "createdAt", "setToServerValue": "REQUEST_TIME"}]
+    }]
+  }
+}

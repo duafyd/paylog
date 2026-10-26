@@ -2,7 +2,7 @@
 
 > 기존 Firebase 프로젝트 `paylog-c5c2d`와 Spark 무료 플랜을 유지합니다. 아이디·비밀번호로 가입하고 초대 코드로 공동 가계부를 사용합니다. 참여 인원수 제한은 없습니다. [설정·배포 안내](docs/FIREBASE_MIGRATION.md).
 
-Flutter Web 가계부입니다. Firebase Auth로 로그인하고 Firestore에 원장·멤버·거래를 저장합니다. 같은 가계부의 거래 등록·수정·삭제 표시가 온라인으로 동기화됩니다. 로그인 전에는 세션 전용 샘플을 보여줍니다. 이전 Sheets·GAS·Android 문자 수집은 별도 경로로 남아 있으며 **자동 이전·새 Firestore 문자 수집은 아직 지원하지 않습니다.** 운영 Firebase 및 iPhone/Galaxy 실기기 검증은 별도입니다.
+Flutter Web 가계부입니다. Firebase Auth로 로그인하고 Firestore에 원장·멤버·거래를 저장합니다. 같은 가계부의 거래 등록·수정·삭제 표시가 온라인으로 동기화됩니다. 로그인 전에는 세션 전용 샘플을 보여줍니다. 이전 Sheets·GAS·Android 문자 수집은 별도 경로로 남아 있으며 **자동 이전은 지원하지 않습니다.** 새 [Firestore 문자 수집](docs/firestore-sms.md)은 Android 1.1.0 및 별도 기기 연결을 사용합니다. iPhone은 단축어 수동 구성과 수집함 확인이 필요합니다. 운영 Firebase 및 iPhone/Galaxy 실기기 검증은 별도입니다.
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)

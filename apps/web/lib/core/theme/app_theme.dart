@@ -64,7 +64,10 @@ abstract final class AppTheme {
         minimumSize: const Size(48, 52),
         backgroundColor: AppColors.dark,
         foregroundColor: Colors.white,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(
+            fontFamily: 'NotoSansKR',
+            fontSize: 14,
+            fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       )),
       outlinedButtonTheme: OutlinedButtonThemeData(

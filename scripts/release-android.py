@@ -16,8 +16,8 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '1.0.2'
-VERSION_CODE = 4
+VERSION = '1.1.0'
+VERSION_CODE = 5
 ALIAS = 'paylog-release'
 REPOSITORY = 'duafyd/paylog'
 RELEASE_TAG = 'android-v' + VERSION
@@ -73,7 +73,7 @@ def stage_download(apk, public, metadata):
     (download / 'paylog-sms.apk').write_bytes(data)
     (download / 'paylog-sms.apk.sha256').write_text(digest + '  paylog-sms.apk\n')
     (download / 'android-release.json').write_text(json.dumps(metadata, ensure_ascii=False, indent=2))
-    (download / 'index.html').write_text('''<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>paylog Android 앱</title><style>body{background:#f7f8fa;color:#263735;font:16px system-ui;margin:0;padding:32px 20px}main{max-width:520px;margin:32px auto;background:white;border-radius:24px;padding:28px}a{display:block;background:#207a75;color:white;padding:18px;text-align:center;border-radius:16px;text-decoration:none}p{line-height:1.7}small{color:#526562}</style><main><h1>paylog Android</h1><p>문자를 받아 우리 집 가계부로 전송하는 보조 앱입니다.</p><a href="''' + APK_URL + '''">Android 앱 다운로드 · v''' + VERSION + '''</a><p>다운로드한 APK를 열어 설치하세요. 설치를 요청한 브라우저의 ‘알 수 없는 앱 설치’ 허용이 필요할 수 있습니다.</p><p>SMS 자동 수집에는 GAS 주소·기기 등록·SMS 수신 권한 설정이 필요합니다.</p><small>이전 개발용 앱은 서명이 달라 교체 설치가 필요할 수 있습니다. 삭제하면 그 앱의 설정과 대기 문자가 삭제됩니다. 실제 SMS 수신·배터리 제한 동작은 기기에서 확인해야 합니다.</small></main></html>''')
+    (download / 'index.html').write_text('''<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>paylog Android 앱</title><style>body{background:#f6f7fb;color:#20242d;font:16px system-ui;margin:0;padding:32px 20px}main{max-width:520px;margin:32px auto;background:white;border-radius:24px;padding:28px}a{display:block;background:#335cff;color:white;padding:18px;text-align:center;border-radius:16px;text-decoration:none}p{line-height:1.7}small{color:#526562}</style><main><h1>paylog Android</h1><p>문자를 받아 우리 집 가계부로 전송하는 보조 앱입니다.</p><a href="''' + APK_URL + '''">Android 앱 다운로드 · v''' + VERSION + '''</a><p>다운로드한 APK를 열어 설치하세요. 설치를 요청한 브라우저의 ‘알 수 없는 앱 설치’ 허용이 필요할 수 있습니다.</p><p>새 공동 가계부는 웹 설정 → 문자 자동 기록 · 기기 연결에서 만든 연결 파일과 SMS 수신 권한이 필요합니다. 웹을 열면 등록한 하나카드 승인을 자동 반영하고 취소·미해석 문자는 확인합니다. 기존 Sheets/GAS 연결도 유지됩니다.</p><small>이전 개발용 앱은 서명이 달라 교체 설치가 필요할 수 있습니다. 삭제하면 그 앱의 설정과 대기 문자가 삭제됩니다. 실제 SMS 수신·배터리 제한 동작은 기기에서 확인해야 합니다.</small></main></html>''')
     return metadata
 
 
@@ -102,7 +102,7 @@ def publish_github(download, metadata):
                                 text=True, capture_output=True, check=True).stdout.strip()
         subprocess.run([*base, 'create', RELEASE_TAG, '--repo', REPOSITORY,
                         '--target', commit, '--draft', '--title', 'paylog Android ' + VERSION,
-                        '--notes', 'Signed Android SMS companion. See the in-app guide for setup. Physical-device SMS testing is pending.'], check=True)
+                        '--notes', 'Signed Android SMS companion with capture-only Firestore connection files. Recognized Hana approvals are imported when the shared ledger web app is open. Legacy Sheets/GAS connections remain supported. Physical-device SMS testing is pending.'], check=True)
     elif not json.loads(view.stdout)['isDraft']:
         existing = subprocess.run([*base, 'download', RELEASE_TAG, '--repo', REPOSITORY,
                                    '--pattern', 'android-release.json', '--output', '-'],
