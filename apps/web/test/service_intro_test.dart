@@ -10,7 +10,7 @@ void main() {
         (tester) async {
       await mount(tester, width: 360, scale: scale);
       expect(find.byType(ServiceIntro), findsOneWidget);
-      expect(find.textContaining('Google Sheets 원장에'), findsOneWidget);
+      expect(find.textContaining('아이디와 비밀번호로'), findsOneWidget);
       for (final label in ['개인정보처리방침', '서비스 이용약관']) {
         final button = find.widgetWithText(TextButton, label);
         expect(button, findsOneWidget);

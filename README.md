@@ -1,8 +1,8 @@
 # paylog
 
-> **개발 방향 확정:** 기존 Firebase 프로젝트를 유지하고, 부부 두 사람이 사용할 Firebase Auth + Firestore(Spark 무료 플랜) 구조로 전환합니다. [전환 결정](docs/FIREBASE_MIGRATION.md). 저장 기능은 아직 Sheets 기반이며, 새 Firebase 로그인 연결 단계는 [전환 문서](docs/FIREBASE_MIGRATION.md)를 참고하세요.
+> **개발 방향 확정:** 기존 Firebase 프로젝트를 유지하고, 아이디·비밀번호로 가입한 여러 사람이 초대 코드로 공동 원장을 사용할 Firebase Auth + Firestore(Spark 무료 플랜) 구조로 전환합니다. [전환 결정](docs/FIREBASE_MIGRATION.md). 저장 기능은 아직 Sheets 기반이며, 새 아이디·비밀번호 회원가입/로그인 연결 단계는 [전환 문서](docs/FIREBASE_MIGRATION.md)를 참고하세요.
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·거래 등록/수정/삭제·통계가 해당 시트를 사용합니다. 소유자 관리 화면, SMS 수집 GAS, Android 보조 앱과 iOS 설정 가이드도 포함합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
+가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 새 계정은 아이디·비밀번호로 가입하고 로그인합니다. 공동 Firestore 원장·초대는 다음 구현 단계이며 현재 기본 거래 화면은 세션 전용 샘플입니다. 이전 Google 로그인·Sheets 원장 연결 경로는 전환 기간에 별도로 유지합니다. 소유자 관리 화면, SMS 수집 GAS, Android 보조 앱과 iOS 설정 가이드도 포함합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)

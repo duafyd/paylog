@@ -13,14 +13,13 @@ class ServiceIntro extends StatelessWidget {
         children: [
           const Text(
             'paylog는 가족이 수입과 지출을 함께 기록하는 가계부예요. '
-            'Google 계정을 연결하면 내가 접근할 수 있는 Google Sheets 원장에 '
-            '기록을 저장하고, 달력과 통계로 확인할 수 있어요.',
+            '기록을 달력과 통계로 확인하고, 아이디와 비밀번호로 시작할 수 있어요.',
             style: TextStyle(color: AppColors.muted, fontSize: 13),
           ),
           TextButton.icon(
             onPressed: () => context.go('/sign-in'),
             icon: const Icon(Icons.account_circle_outlined),
-            label: const Text('Google 계정으로 시작'),
+            label: const Text('로그인 / 회원가입'),
           ),
           Wrap(
             spacing: 8,

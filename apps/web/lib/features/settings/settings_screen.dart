@@ -46,8 +46,8 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsAction(
                 icon: Icons.account_circle_outlined,
                 title: '로그인 및 계정',
-                subtitle: ref.watch(firebaseSessionProvider).user?.email ??
-                    'Google 계정으로 시작',
+                subtitle: ref.watch(firebaseSessionProvider).user?.username ??
+                    '아이디로 로그인 · 간편 회원가입',
                 onTap: () => context.go('/sign-in')),
             const Divider(height: 24),
             _SettingsAction(

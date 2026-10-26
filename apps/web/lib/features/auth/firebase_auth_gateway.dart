@@ -3,19 +3,30 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'auth_port.dart';
 import 'firebase_options.dart';
+import 'username.dart';
 
 class FirebaseAuthGateway implements AuthPort {
   FirebaseAuth? _auth;
   Future<FirebaseAuth>? _initialization;
 
-  AuthIdentity? _identity(User? user) => user == null
-      ? null
-      : AuthIdentity(uid: user.uid, email: user.email, name: user.displayName);
+  AuthIdentity? _identity(User? user) {
+    if (user == null) return null;
+    final username = usernameFromAddress(user.email);
+    if (username == null ||
+        !user.providerData.any((p) => p.providerId == 'password')) {
+      return null;
+    }
+    return AuthIdentity(uid: user.uid, username: username);
+  }
 
   @override
   Future<AuthIdentity?> initialize() async {
     final auth = await (_initialization ??= _initializeAuth());
-    return _identity(await auth.authStateChanges().first);
+    final user = await auth.authStateChanges().first;
+    final identity = _identity(user);
+    // Do not restore the previous Google-only session into username login.
+    if (user != null && identity == null) await auth.signOut();
+    return identity;
   }
 
   Future<FirebaseAuth> _initializeAuth() async {
@@ -42,11 +53,23 @@ class FirebaseAuthGateway implements AuthPort {
   Stream<AuthIdentity?> get changes => _auth!.authStateChanges().map(_identity);
 
   @override
-  Future<AuthIdentity> signIn() async {
+  Future<AuthIdentity> signIn(String username, String password) =>
+      _authenticate(username, password, creating: false);
+
+  @override
+  Future<AuthIdentity> register(String username, String password) =>
+      _authenticate(username, password, creating: true);
+
+  Future<AuthIdentity> _authenticate(String username, String password,
+      {required bool creating}) async {
+    final address = usernameAddress(username);
+    validatePassword(password, creating: creating);
     try {
-      // Called directly from the button gesture; no await before opening popup.
-      final result = await _auth!.signInWithPopup(GoogleAuthProvider()
-        ..setCustomParameters({'prompt': 'select_account'}));
+      final result = creating
+          ? await _auth!.createUserWithEmailAndPassword(
+              email: address, password: password)
+          : await _auth!
+              .signInWithEmailAndPassword(email: address, password: password);
       final identity = _identity(result.user);
       if (identity == null) throw const AuthFailure('missing-user');
       return identity;

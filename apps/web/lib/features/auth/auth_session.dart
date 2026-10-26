@@ -5,6 +5,7 @@ import '../google_connection/google_connection.dart';
 import '../transactions/transaction_repository.dart';
 import 'auth_port.dart';
 import 'firebase_auth_gateway.dart';
+import 'username.dart';
 
 final firebaseAuthPortProvider =
     Provider<AuthPort>((ref) => FirebaseAuthGateway());
@@ -72,23 +73,40 @@ class AuthSession extends ChangeNotifier {
     }
   }
 
-  Future<void> signIn() async {
+  Future<void> signIn(String username, String password) =>
+      _authenticate(username, password, creating: false);
+
+  Future<void> register(String username, String password) =>
+      _authenticate(username, password, creating: true);
+
+  Future<void> _authenticate(String username, String password,
+      {required bool creating}) async {
     if (!ready || busy || _disposed) return;
     busy = true;
     error = null;
     _publish();
     try {
-      _setUser(await port.signIn());
+      final normalized = normalizeUsername(username);
+      validatePassword(password, creating: creating);
+      final identity = creating
+          ? await port.register(normalized, password)
+          : await port.signIn(normalized, password);
+      _setUser(identity);
     } catch (failure) {
       if (!_disposed) {
         error = failure is AuthFailure
             ? authErrorMessage(failure.code)
-            : '로그인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.';
+            : '요청을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.';
       }
     } finally {
       busy = false;
       _publish();
     }
+  }
+
+  void clearError() {
+    error = null;
+    _publish();
   }
 
   Future<void> signOut() async {
@@ -116,18 +134,22 @@ class AuthSession extends ChangeNotifier {
 }
 
 String authErrorMessage(String code) => switch (code) {
-      'popup-closed-by-user' ||
-      'cancelled-popup-request' =>
-        '로그인을 취소했어요. 원할 때 다시 로그인할 수 있어요.',
-      'popup-blocked' => '팝업이 차단됐어요. 이 사이트의 팝업을 허용하고 다시 눌러 주세요.',
-      'unauthorized-domain' => '이 주소에서는 아직 로그인할 수 없어요. 사이트 운영자에게 알려 주세요.',
-      'operation-not-allowed' => 'Google 로그인이 아직 활성화되지 않았어요. 사이트 운영자에게 알려 주세요.',
+      'invalid-username' => '아이디는 영문으로 시작하는 영문·숫자·밑줄 4~20자로 입력해 주세요.',
+      'invalid-password' => '비밀번호를 입력해 주세요. 최대 128자까지 사용할 수 있어요.',
+      'weak-password' ||
+      'password-does-not-meet-requirements' =>
+        '비밀번호는 8~128자로 입력해 주세요. 추가 조건이 안내되면 함께 확인해 주세요.',
+      'email-already-in-use' => '이미 사용 중인 아이디예요. 다른 아이디를 입력해 주세요.',
+      'wrong-password' ||
+      'user-not-found' ||
+      'invalid-credential' ||
+      'invalid-login-credentials' =>
+        '아이디 또는 비밀번호를 확인해 주세요.',
+      'operation-not-allowed' => '회원가입·로그인이 아직 준비되지 않았어요. 사이트 운영자에게 알려 주세요.',
       'network-request-failed' => '네트워크 연결을 확인하고 다시 시도해 주세요.',
       'too-many-requests' => '요청이 많아 잠시 쉬고 있어요. 잠시 후 다시 시도해 주세요.',
       'user-disabled' => '사용이 중지된 계정이에요. 사이트 운영자에게 문의해 주세요.',
-      'account-exists-with-different-credential' =>
-        '이 이메일로 등록된 다른 로그인 방법을 사용해 주세요.',
       'unsupported-platform' => 'Safari 또는 Chrome에서 웹앱을 열어 주세요.',
       'wrong-project' => '로그인 설정을 확인해야 해요. 사이트 운영자에게 알려 주세요.',
-      _ => '로그인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      _ => '요청을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.',
     };

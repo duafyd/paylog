@@ -1,9 +1,7 @@
 class AuthIdentity {
-  const AuthIdentity(
-      {required this.uid, required this.email, required this.name});
+  const AuthIdentity({required this.uid, required this.username});
   final String uid;
-  final String? email;
-  final String? name;
+  final String username;
 }
 
 class AuthFailure implements Exception {
@@ -11,10 +9,11 @@ class AuthFailure implements Exception {
   final String code;
 }
 
-/// Tokens stay inside the Firebase SDK; UI/controller receive profile data only.
+/// Tokens and passwords never become profile data in the UI/controller model.
 abstract interface class AuthPort {
   Future<AuthIdentity?> initialize();
   Stream<AuthIdentity?> get changes;
-  Future<AuthIdentity> signIn();
+  Future<AuthIdentity> signIn(String username, String password);
+  Future<AuthIdentity> register(String username, String password);
   Future<void> signOut();
 }

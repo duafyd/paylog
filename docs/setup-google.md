@@ -1,6 +1,6 @@
 # Google 로그인·Sheets 연결 PoC
 
-> 이 문서는 이전 Sheets 연결 경로입니다. 새 Firebase 로그인 설정과 검증은 [Firebase 전환 문서](FIREBASE_MIGRATION.md)를 따릅니다. 새 로그인은 Sheets 권한을 요청하지 않습니다.
+> 이 문서는 이전 Sheets 연결 경로입니다. 새 아이디·비밀번호 회원가입/로그인 설정과 검증은 [Firebase 전환 문서](FIREBASE_MIGRATION.md)를 따릅니다. 새 로그인은 Google OAuth나 Sheets 권한을 요청하지 않습니다.
 
 이 단계는 Google Identity Services(GIS) 웹 토큰 모델로 계정을 확인하고 Sheets REST API 접근을 검증한다. **아래 접근 확인 PoC와 별도로 [Sheets 원장 연결](sheets-ledger.md)이 추가되었다.** 기존 시트는 GET으로만 검사한다. 쓰기 검증은 사용자가 명시적으로 요청한 새 테스트 시트에서만 수행한다.
 
