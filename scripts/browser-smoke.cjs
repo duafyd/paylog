@@ -1,3 +1,4 @@
+const {firebaseSdkRoutes}=require('./firebase-browser-sdk.cjs');
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const path=require('node:path');
@@ -8,6 +9,7 @@ fs.mkdirSync(screenshotDir,{recursive:true});
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
  try {
  const page=await browser.newPage({viewport:{width:402,height:874}});
+ await firebaseSdkRoutes(page);
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(process.env.PAYLOG_BASE_URL || 'http://127.0.0.1:8080',{waitUntil:'networkidle'});
  await page.locator('#loading').waitFor({state:'detached'});

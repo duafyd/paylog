@@ -1,4 +1,4 @@
-> **확정된 다음 아키텍처 (2026-10-26):** 기존 Firebase 프로젝트의 Spark 요금제에서 Firebase Auth + Firestore로 전환한다. 부부 두 계정의 공동 원장과 iPhone/Android 웹앱을 지원한다. [전환 결정 및 구현 순서](FIREBASE_MIGRATION.md)를 따른다. 아래 내용은 현재 Sheets 구현에 대한 기록이며 아직 전환 완료 상태가 아니다.
+> **확정된 다음 아키텍처 (2026-10-26):** 기존 Firebase 프로젝트의 Spark 요금제에서 Firebase Auth + Firestore로 전환한다. 아이디·비밀번호로 가입한 여러 계정의 공동 원장과 초대 코드 참여, iPhone/Android 웹앱을 지원한다. [전환 결정 및 구현 순서](FIREBASE_MIGRATION.md)를 따른다. 아래 내용은 현재 Sheets 구현에 대한 기록이며 아직 전환 완료 상태가 아니다.
 
 # 현재 아키텍처
 

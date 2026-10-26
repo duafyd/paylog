@@ -127,9 +127,11 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
       ref.read(visibleMonthProvider.notifier).state =
           DateTime(_date.year, _date.month);
       ref.read(selectedDayProvider.notifier).state = _date;
-      final message = repository.sheetId == null
+      final message = repository.isDemo
           ? '거래를 저장했어요. 이 세션에서만 유지됩니다.'
-          : '거래를 저장했어요. Sheets 재조회까지 확인했습니다.';
+          : repository.householdId != null
+              ? '공동 가계부에 거래를 저장했어요.'
+              : '거래를 저장했어요. Sheets 재조회까지 확인했습니다.';
       context.go('/');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (messenger.mounted) {
@@ -171,10 +173,11 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
           const Text('오늘의 소비도, 반가운 수입도.',
               style: TextStyle(color: AppColors.muted)),
           if (!_boundRepository.canWrite)
-            const Padding(
+            Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child:
-                    Text('조회 전용 원장이에요. Google 공유 권한과 활성 Members 연결을 확인해 주세요.')),
+                child: Text(_boundRepository.householdId != null
+                    ? '원장 연결을 확인한 뒤 다시 기록해 주세요.'
+                    : '조회 전용 원장이에요. Google 공유 권한과 활성 Members 연결을 확인해 주세요.')),
           const SizedBox(height: 24),
           SegmentedButton<TransactionType>(
               segments: const [
@@ -346,9 +349,11 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                       : '기록 저장하기')),
           TextButton(onPressed: () => context.go('/'), child: const Text('취소')),
           Text(
-              _boundRepository.sheetId == null
+              _boundRepository.isDemo
                   ? '샘플 모드 · 새로고침하면 추가한 기록이 초기화됩니다.'
-                  : 'Sheets 모드 · 새로고침 후 로그인하고 같은 시트를 다시 연결하세요.',
+                  : _boundRepository.householdId != null
+                      ? '공동 가계부 · 같은 아이디로 로그인하면 기록을 다시 볼 수 있어요.'
+                      : 'Sheets 모드 · 새로고침 후 로그인하고 같은 시트를 다시 연결하세요.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.muted)),
         ]),

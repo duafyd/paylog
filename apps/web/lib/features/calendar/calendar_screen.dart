@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bento_card.dart';
+import '../../core/widgets/service_intro.dart';
 import '../transactions/transaction.dart';
 import '../transactions/transaction_repository.dart';
 import '../transactions/transaction_tile.dart';
@@ -26,6 +27,8 @@ class CalendarScreen extends ConsumerWidget {
         children: [
           const Text('우리 집의 작은 기록',
               style: TextStyle(color: AppColors.muted, fontSize: 13)),
+          const SizedBox(height: 8),
+          const ServiceIntro(),
           const SizedBox(height: 4),
           const MonthSelector(),
           const LedgerStatus(),

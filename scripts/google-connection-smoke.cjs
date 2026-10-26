@@ -1,3 +1,4 @@
+const {firebaseSdkRoutes}=require('./firebase-browser-sdk.cjs');
 // Synthetic GIS/API contract smoke test. This does NOT prove real Google login.
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
@@ -7,7 +8,8 @@ const fs = require('node:fs');
   const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox','--disable-dev-shm-usage']});
   try {
     const page = await browser.newPage({viewport:{width:402,height:874}});
-    const errors = [];
+    await firebaseSdkRoutes(page);
+ const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     const sheetId = 'browserTestSpreadsheetId0123456789';
     let rows; const methods=[];

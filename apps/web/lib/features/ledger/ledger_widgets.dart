@@ -5,12 +5,14 @@ import '../../core/widgets/bento_card.dart';
 import '../google_connection/google_connection.dart';
 import '../transactions/transaction_repository.dart';
 import 'ledger_session.dart';
+import '../household/firestore_status.dart';
 
 class LedgerStatus extends ConsumerWidget {
   const LedgerStatus({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repository = ref.watch(transactionRepositoryProvider);
+    if (repository.householdId != null) return const FirestoreStatus();
     final status = ref.watch(ledgerSessionProvider);
     if (repository.sheetId == null && status.error == null) {
       return const SizedBox.shrink();

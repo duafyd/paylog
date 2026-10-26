@@ -1,3 +1,4 @@
+const {firebaseSdkRoutes}=require('./firebase-browser-sdk.cjs');
 // Mock-only integration: no real Google account or spreadsheet is accessed.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
@@ -6,7 +7,8 @@ const path=require('node:path');const fs=require('node:fs');
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
  try {
   const page=await browser.newPage({viewport:{width:402,height:874}});
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await firebaseSdkRoutes(page);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const id='mockLiveSpreadsheetIdentifier1234567890';
   let rows=[],people=[],appendCount=0,firstAppend=true;
   await page.route('https://accounts.google.com/gsi/client',route=>route.fulfill({contentType:'text/javascript',body:`

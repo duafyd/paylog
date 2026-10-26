@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paylog/app/app.dart';
+import 'package:paylog/features/auth/auth_port.dart';
+import 'package:paylog/features/auth/auth_session.dart';
+import 'package:paylog/features/household/household_session.dart';
+import 'package:paylog/features/household/household.dart';
 import 'package:paylog/features/transactions/transaction.dart';
 import 'package:paylog/features/transactions/transaction_repository.dart';
 
 Future<ProviderContainer> mount(WidgetTester tester,
     {double width = 390,
     double scale = 1,
-    TransactionRepository? repository}) async {
+    TransactionRepository? repository,
+    AuthPort? auth,
+    FirebaseFirestore? firestore}) async {
   tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1;
   tester.platformDispatcher.textScaleFactorTestValue = scale;
@@ -16,6 +23,11 @@ Future<ProviderContainer> mount(WidgetTester tester,
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   final container = ProviderContainer(overrides: [
+    if (auth != null) firebaseAuthPortProvider.overrideWithValue(auth),
+    if (auth != null && firestore == null)
+      householdPortProvider.overrideWithValue(NoHouseholdPort()),
+    if (firestore != null)
+      firestoreDatabaseProvider.overrideWithValue(firestore),
     if (repository != null)
       activeRepositoryProvider.overrideWith((ref) => repository),
     clockProvider.overrideWithValue(() => DateTime(2026, 10, 20, 12))
@@ -31,7 +43,8 @@ Future<void> reveal(WidgetTester tester, Finder target) async {
   final scrollable = find.byType(Scrollable).first;
   tester.state<ScrollableState>(scrollable).position.jumpTo(0);
   await tester.pumpAndSettle();
-  await tester.scrollUntilVisible(target, 200, scrollable: scrollable);
+  await tester.scrollUntilVisible(target, 200,
+      scrollable: scrollable, maxScrolls: 150);
   await tester.pumpAndSettle();
 }
 
@@ -127,4 +140,24 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+}
+
+class NoHouseholdPort implements HouseholdPort {
+  @override
+  Future<Household?> load(AuthIdentity user) async => null;
+  @override
+  Future<Household> create(AuthIdentity user, String name) =>
+      throw UnimplementedError();
+  @override
+  Future<Household> join(AuthIdentity user, String code) =>
+      throw UnimplementedError();
+  @override
+  Future<HouseholdInvite> invite(AuthIdentity user, Household household) =>
+      throw UnimplementedError();
+  @override
+  Future<void> revokeInvite(AuthIdentity user, String code) =>
+      throw UnimplementedError();
+  @override
+  Future<MemberPage> members(Household household, {String? afterUid}) async =>
+      const MemberPage([], false);
 }

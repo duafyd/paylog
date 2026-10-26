@@ -1,3 +1,5 @@
+> 새 아이디·비밀번호/Firestore 공동 가계부 배포는 [Firebase 전환 설정](FIREBASE_MIGRATION.md)을 먼저 따른다. 소유자가 Email/Password를 켜고 기본 Firestore를 프로덕션 모드로 생성해야 한다. `deploy-cloud-shell.sh`는 이제 Firestore 보안 규칙을 먼저 배포한 후 Hosting을 게시한다. 원본 Sheets/SMS 자동 이전은 포함하지 않는다.
+
 # 배포와 CI
 
 Firebase Hosting 설정은 저장소의 `firebase.json`이다. 실제 배포는 프로젝트 ID와 본인 Firebase 로그인/CI 인증이 있어야 한다. 공개 프로젝트·OAuth ID는 확인됐지만 이 개발 환경에는 사용자 Firebase 로그인 계정이 없다. 본인 Cloud Shell에서 배포하며, 최신 공개 상태와 가족용 절차는 [가족용 정식 배포](FAMILY_RELEASE.md)를 따른다. 플랫폼 제공 서비스 계정 자격증명을 사용자 계정 대신 사용하지 않는다.

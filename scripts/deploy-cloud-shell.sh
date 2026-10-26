@@ -69,6 +69,8 @@ try:
     config['hosting']['public']='web'
     config_path=m.ROOT/'apps/web/build/cloud-shell.firebase.json'
     config_path.write_text(json.dumps(config))
+    # Rules must succeed before publishing a web build that uses Firestore.
+    m.firebase(['deploy','--only','firestore:rules','--project',project,'--config',str(m.ROOT/'firebase.json')],env,live=True)
     m.firebase(['deploy','--only','hosting','--project',project,'--config',str(config_path)],env)
     url='https://'+project+'.web.app'
     for attempt in range(6):

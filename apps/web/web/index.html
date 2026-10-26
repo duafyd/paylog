@@ -40,7 +40,11 @@
   <style>
     body { margin: 0; background: #f7f8fa; }
     #loading { position: fixed; inset: 0; display: grid; place-content: center;
-      color: #207a75; font: 600 18px system-ui, sans-serif; }
+      padding: 24px; box-sizing: border-box; overflow: auto;
+      color: #20242c; font: 16px/1.7 system-ui, sans-serif; }
+    #loading section { max-width: 620px; }
+    #loading h1 { margin: 0; font-size: 32px; }
+    #loading a { color: #365edc; }
   </style>
 </head>
 <body>
@@ -48,7 +52,14 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQQ9XCLC"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div id="loading" role="status" aria-live="polite">paylog · 가계부를 준비하고 있어요<nav aria-label="서비스 안내" style="margin-top:20px;font-size:14px"><a href="privacy.html">개인정보처리방침</a> · <a href="terms.html">서비스 이용약관</a></nav></div>
+  <main id="loading">
+    <section aria-label="paylog 서비스 소개">
+      <h1>paylog</h1>
+      <p>가족이 수입과 지출을 함께 기록하는 가계부입니다. 수입과 지출을 달력과 통계로 확인하고, 아이디와 비밀번호로 회원가입·로그인할 수 있습니다.</p>
+      <p role="status" aria-live="polite">가계부를 준비하고 있어요.</p>
+      <nav aria-label="서비스 안내"><a href="privacy.html">개인정보처리방침</a> · <a href="terms.html">서비스 이용약관</a></nav>
+    </section>
+  </main>
   <noscript>paylog를 사용하려면 JavaScript를 활성화해 주세요.</noscript>
   <script>
     window.addEventListener('flutter-first-frame', () => document.getElementById('loading')?.remove());

@@ -2,6 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'transaction.dart';
 
 abstract class TransactionRepository {
+  String? get householdId => null;
+  bool get isDemo => sheetId == null && householdId == null;
+  String get storageLabel => isDemo
+      ? '샘플 가계부'
+      : householdId != null
+          ? '공동 가계부'
+          : 'Sheets 원장';
+  Stream<int> get changes => const Stream<int>.empty();
   List<BudgetCategory> get categoryCatalog => categories;
   Future<void> update(BudgetTransaction transaction) =>
       throw UnsupportedError("수정을 지원하지 않습니다.");
@@ -129,6 +137,8 @@ final ledgerMembersProvider = Provider<List<LedgerMember>>((ref) {
   ref.watch(transactionsProvider);
   return ref.watch(transactionRepositoryProvider).ledgerMembers;
 });
+final repositoryUpdatesProvider = StreamProvider.autoDispose<int>(
+    (ref) => ref.watch(transactionRepositoryProvider).changes);
 final transactionsProvider =
     NotifierProvider<TransactionsController, List<BudgetTransaction>>(
         TransactionsController.new);
@@ -140,6 +150,7 @@ class TransactionsController extends Notifier<List<BudgetTransaction>> {
   List<BudgetTransaction> build() {
     _generation++;
     ref.onDispose(() => _generation++);
+    ref.watch(repositoryUpdatesProvider);
     return ref.watch(transactionRepositoryProvider).readAll();
   }
 

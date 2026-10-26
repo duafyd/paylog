@@ -3,6 +3,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
+import '../features/auth/sign_in_screen.dart';
+import '../features/household/household_screen.dart';
+import '../features/household/household_session.dart';
 import '../features/calendar/calendar_screen.dart';
 import '../features/transactions/transaction_form.dart';
 import '../features/transactions/transaction_detail.dart';
@@ -40,6 +43,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 })),
         GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
         GoRoute(
+            path: '/household',
+            builder: (context, state) => const HouseholdScreen()),
+        GoRoute(
+            path: '/sign-in',
+            builder: (context, state) => const SignInScreen()),
+        GoRoute(
             path: '/statistics',
             builder: (context, state) => const StatisticsScreen()),
         GoRoute(
@@ -71,15 +80,18 @@ final routerProvider = Provider<GoRouter>((ref) {
 class PaylogApp extends ConsumerWidget {
   const PaylogApp({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-        title: 'paylog · 우리 집의 작은 기록',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        locale: const Locale('ko'),
-        supportedLocales: const [Locale('ko')],
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        routerConfig: ref.watch(routerProvider),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(householdSessionProvider);
+    return MaterialApp.router(
+      title: 'paylog · 우리 집의 작은 기록',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      locale: const Locale('ko'),
+      supportedLocales: const [Locale('ko')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      routerConfig: ref.watch(routerProvider),
+    );
+  }
 }
 
 class AppShell extends ConsumerWidget {
@@ -125,11 +137,8 @@ class AppShell extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(20)),
                           child: Text(
                               ref
-                                          .watch(transactionRepositoryProvider)
-                                          .sheetId ==
-                                      null
-                                  ? '샘플 가계부'
-                                  : 'Sheets 원장',
+                                  .watch(transactionRepositoryProvider)
+                                  .storageLabel,
                               style: const TextStyle(
                                   color: AppColors.accent,
                                   fontSize: 12,
@@ -154,6 +163,8 @@ class AppShell extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(26),
                           child: NavigationBar(
                             selectedIndex: const [
+                              '/sign-in',
+                              '/household',
                               '/google-connection',
                               '/help',
                               '/management'
