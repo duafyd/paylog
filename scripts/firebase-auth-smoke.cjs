@@ -5,19 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {spawnSync}=require('node:child_process');
 const base=process.env.PAYLOG_BASE_URL || 'http://127.0.0.1:8096';
-const sdkCache=path.resolve(__dirname,'../apps/web/build/firebase-auth-smoke-sdk');
-fs.mkdirSync(sdkCache,{recursive:true});
-function sdkFile(url) {
- const match=/^https:\/\/www\.gstatic\.com\/firebasejs\/(\d+\.\d+\.\d+)\/(firebase-(?:app|auth)\.js)$/.exec(url);
- assert(match,'Only official Firebase app/auth SDK modules may be fetched');
- const target=path.join(sdkCache,match[1]+'-'+match[2]);
- if(!fs.existsSync(target)) {
-  const code='import urllib.request,sys\nwith urllib.request.urlopen(sys.argv[1],timeout=30) as r: data=r.read()\nopen(sys.argv[2],"wb").write(data)';
-  const result=spawnSync('python3',['-c',code,url,target],{encoding:'utf8'});
-  assert.equal(result.status,0,'Official SDK download failed');
- }
- return target;
-}
+const {firebaseSdkRoutes}=require('./firebase-browser-sdk.cjs');
 function testJwt() {
  const now=Math.floor(Date.now()/1000);
  return [Buffer.from(JSON.stringify({alg:'RS256',typ:'JWT'})).toString('base64url'),Buffer.from(JSON.stringify({sub:'smoke-family',user_id:'smoke-family',aud:'paylog-c5c2d',iss:'https://securetoken.google.com/paylog-c5c2d',iat:now,exp:now+3600,auth_time:now,email:'family_one@accounts.paylog.invalid',email_verified:false,firebase:{sign_in_provider:'password',identities:{email:['family_one@accounts.paylog.invalid']}}})).toString('base64url'),'test-only-signature'].join('.');
@@ -31,10 +19,9 @@ function testJwt() {
   const password='test-only-password  '; // trailing spaces must not be trimmed
   // Match Firebase Hosting's existing SPA rewrite when using a plain static server.
   await context.route(base+'/sign-in', route=>route.fulfill({path:path.resolve(__dirname,'../apps/web/build/web/index.html'),contentType:'text/html'}));
-  await context.route('https://www.gstatic.com/firebasejs/**',async route=>{
-   await route.fulfill({path:sdkFile(route.request().url()),contentType:'text/javascript',headers:{'access-control-allow-origin':'*'}});
-  });
-  await context.route('https://www.googletagmanager.com/**',route=>route.fulfill({body:'',contentType:'text/javascript'}));
+  await firebaseSdkRoutes(context);
+  // Household/financial integration is covered separately; never send a fake identity to production Firestore.
+  await context.route('https://firestore.googleapis.com/**',route=>route.abort());
   await context.route('https://sheets.googleapis.com/**',route=>{sheetRequests++;return route.abort();});
   await context.route('https://identitytoolkit.googleapis.com/**',async route=>{
    const pathname=new URL(route.request().url()).pathname;authRequests.push(pathname);
@@ -89,7 +76,7 @@ function testJwt() {
   await page.getByRole('button',{name:'가입하고 시작하기',exact:true}).click();
   await snapshotContains(loginId+'님');
   assert(!(await page.locator('body').ariaSnapshot()).includes('@accounts.paylog.invalid'));
-  assert((await page.locator('body').ariaSnapshot()).includes('초대 코드로 함께 쓰는 기능은 다음 단계'));
+  assert((await page.locator('body').ariaSnapshot()).includes('공동 가계부 시작하기'));
   assert(!(await page.evaluate(()=>JSON.stringify(sessionStorage))).includes(password));
   await page.reload({waitUntil:'domcontentloaded'});await enableSemantics();
   await snapshotContains(loginId+'님');

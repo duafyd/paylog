@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/platform/open_public_page.dart';
 import '../../core/widgets/bento_card.dart';
@@ -203,6 +204,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 const SizedBox(height: 12),
                 Text('${user.username}님'),
                 const SizedBox(height: 12),
+                FilledButton(
+                    onPressed: () => context.go('/household'),
+                    child: const Text('공동 가계부 시작하기')),
+                const SizedBox(height: 12),
                 OutlinedButton(
                     onPressed: session.busy ? null : session.signOut,
                     child: const Text('로그아웃')),
@@ -224,7 +229,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           const SizedBox(height: 16),
           const BentoCard(
               child: Text(
-                  '현재는 회원가입·로그인 연결 단계예요. 가계부 만들기와 초대 코드로 함께 쓰는 기능은 다음 단계에서 연결합니다. 로그인만으로 샘플 기록이 저장되거나 기존 시트가 자동 이전되지는 않아요.')),
+                  '로그인 후 가계부를 만들거나 초대 코드로 참여하면 공동 원장에 기록을 저장해요. 샘플 기록과 기존 시트는 자동으로 이전하지 않아요.')),
           const SizedBox(height: 16),
           const Text(
               '이 탭에서는 새로고침 후에도 로그인을 유지해요. 공용 기기에서는 사용 후 로그아웃해 주세요. Safari와 홈 화면 웹앱은 각각 로그인이 필요할 수 있어요.'),

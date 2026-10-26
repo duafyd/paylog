@@ -25,7 +25,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
           builder: (context) => AlertDialog(
                 title: const Text('이 기록을 삭제할까요?'),
                 content:
-                    const Text('합계에서 제외됩니다. Sheets 원장에는 삭제 시각과 감사 정보가 남습니다.'),
+                    const Text('합계에서 제외됩니다. 연결된 원장에는 삭제 상태와 감사 정보가 남을 수 있습니다.'),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context, false),

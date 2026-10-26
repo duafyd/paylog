@@ -19,10 +19,11 @@ class UsageGuideScreen extends StatelessWidget {
           const SizedBox(height: 20),
           const _GuideCard(
             title: '먼저 가계부 연결하기',
-            body: '1. 설정 → Google 연결 검증 열기에서 Google 로그인과 Sheets 접근 동의를 진행해요.\n'
-                '2. 기존 가계부 ID·URL로 연결하거나 새 가계부 템플릿을 만들어요. 가족은 해당 시트 공유 권한과 Members 등록이 필요해요.\n'
-                '3. 상단이 “Sheets 원장”인지 확인해요. “샘플 가계부”에서 입력한 기록은 새로고침하면 사라져요.\n'
-                '4. 등록 탭에서 수입·지출을 저장하고 달력·통계에서 확인해요. 인터넷 연결이 필요하고, 다시 접속할 때 로그인·원장 재연결이 필요할 수 있어요.',
+            body:
+                '1. 로그인 / 회원가입에서 각자의 아이디·비밀번호로 가입해요. Google 계정이나 이메일 입력은 필요 없어요.\n'
+                '2. 한 명이 공동 가계부를 만들고 초대 코드를 복사해 공유해요. 다른 사람은 로그인한 뒤 공동 가계부 관리에서 코드를 입력해요. 참여 인원 제한은 없어요.\n'
+                '3. 상단이 “공동 가계부”인지 확인해요. “샘플 가계부”의 기록은 새로고침하면 사라져요.\n'
+                '4. 등록 탭에서 수입·지출을 저장하면 함께 쓰는 가계부에 반영돼요. 인터넷 연결이 필요하고 로그인 상태는 탭 세션을 기준으로 유지돼요. 아이디·비밀번호는 따로 기억해 주세요.',
           ),
           const _GuideCard(
             title: 'Android · 홈 화면에 설치',
@@ -36,6 +37,8 @@ class UsageGuideScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SectionHeader('Android · 문자 자동 수집'),
+                const Text(
+                    '이전 Sheets 원장 전용 기능이에요. 아직 새 공동 가계부로 전송하지 않아요. 새 공동 가계부는 웹에서 직접 기록해 주세요.'),
                 const SizedBox(height: 12),
                 const Text(
                     '1. 아래 다운로드 페이지에서 정식 서명 APK를 받아 설치해요. 최초 릴리스 게시 전에는 페이지가 열리지 않을 수 있어요.\n'
@@ -68,7 +71,7 @@ class UsageGuideScreen extends StatelessWidget {
             title: 'iPhone · 홈 화면에 설치',
             body: '1. Safari에서 https://paylog-c5c2d.web.app 을 열어요.\n'
                 '2. 공유 버튼 → 홈 화면에 추가 → 추가를 선택해요. iOS 버전에 따라 “웹 앱으로 열기” 옵션이 있으면 켜 주세요.\n'
-                '3. 홈 화면의 paylog에서 Google 로그인·Sheets 동의 후 가계부를 연결해요. Safari와 홈 화면 앱의 로그인 상태가 다를 수 있어요.\n'
+                '3. 홈 화면의 paylog에서 아이디·비밀번호로 로그인하고 공동 가계부를 열어요. Safari와 홈 화면 앱의 로그인 상태가 다를 수 있어요.\n'
                 'iPhone에는 Android APK를 설치하지 않아요. 홈 화면 웹앱에서 수입·지출을 직접 등록할 수 있어요.',
           ),
           _GuideCard(
@@ -88,7 +91,7 @@ class UsageGuideScreen extends StatelessWidget {
               ],
             ),
             body:
-                '웹앱은 iPhone 문자를 직접 읽을 수 없어요. 문자 전송은 Apple 단축어를 기기에서 직접 구성해야 해요. 바로 가져오는 서명된 .shortcut 파일은 아직 제공하지 않아요.\n\n'
+                '아래 문자 전송은 이전 Sheets 원장 전용이며 새 공동 가계부에는 아직 연결되지 않아요. 웹앱은 iPhone 문자를 직접 읽을 수 없어요. 문자 전송은 Apple 단축어를 기기에서 직접 구성해야 해요. 바로 가져오는 서명된 .shortcut 파일은 아직 제공하지 않아요.\n\n'
                 '1. 소유자가 GAS를 준비하고 iOS 기기를 등록한 뒤 기기 UUID·원본 토큰·실제 발신번호를 받아요.\n'
                 '2. 단축어 앱에서 “paylog 문자 전송”을 만들고 텍스트를 입력으로 받도록 설정해요.\n'
                 '3. 사전 동작에 아래 필드를 넣어요. body에는 단축어 입력, receivedAt에는 시간대가 포함된 ISO 8601 날짜를 사용해요.\n'
@@ -100,8 +103,9 @@ class UsageGuideScreen extends StatelessWidget {
           ),
           const _GuideCard(
             title: '연결·수집이 안 될 때',
-            body:
-                '• Google “테스터만 접근 가능” 안내: 소유자가 Google Auth Platform의 테스트 사용자에 로그인 이메일을 추가해야 해요.\n'
+            body: '• 새 회원가입이 안 됨: 운영자가 Firebase 이메일/비밀번호 사용 설정을 켰는지 확인해요.\n'
+                '• 공동 가계부 연결 오류: 인터넷 연결과 Firestore 생성·보안 규칙 배포를 확인해요.\n'
+                '• 이전 Google 연결에서 “테스터만 접근 가능” 안내: 소유자가 Google Auth Platform의 테스트 사용자에 로그인 이메일을 추가해야 해요.\n'
                 '• Sheets 권한 오류: 로그인 계정의 시트 공유 권한, Sheets API 활성화, Sheets 접근 동의를 확인해요.\n'
                 '• 문자가 누락됨: 기기·멤버·카드 활성 상태와 실제 발신번호, 기기 토큰, GAS 배포 주소를 확인해요. 파싱이 어려운 문자는 검토함으로 갈 수 있어요.\n'
                 '• 기기 분실·토큰 노출: 소유자가 관리 → 기기에서 해당 기기를 비활성화해요. 토큰과 문자 원문을 채팅·스크린샷·공개 저장소에 올리지 마세요.\n'

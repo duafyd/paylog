@@ -10,13 +10,14 @@ import 'username.dart';
 final firebaseAuthPortProvider =
     Provider<AuthPort>((ref) => FirebaseAuthGateway());
 final firebaseSessionProvider = ChangeNotifierProvider<AuthSession>((ref) {
-  return AuthSession(ref.watch(firebaseAuthPortProvider),
-      onIdentityChanged: () {
-    // A new Firebase identity must never inherit an old Sheets user's records.
+  final session =
+      AuthSession(ref.watch(firebaseAuthPortProvider), onIdentityChanged: () {
     ref.read(googleConnectionProvider).invalidateSession();
     ref.read(activeRepositoryProvider.notifier).state = null;
     ref.invalidate(demoRepositoryProvider);
   });
+  scheduleMicrotask(session.initialize);
+  return session;
 });
 
 class AuthSession extends ChangeNotifier {

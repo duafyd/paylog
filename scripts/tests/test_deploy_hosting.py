@@ -109,5 +109,24 @@ class DeploymentPreflightTest(unittest.TestCase):
                     deploy.validate_existing_build(root, client)
 
 
+class FirestoreDeploymentOrderTest(unittest.TestCase):
+    def test_rules_failure_stops_hosting_publication(self):
+        with patch('sys.argv', ['deploy-hosting.py', '--deploy']), \
+                patch.object(deploy, 'preflight', return_value=('paylog-test-project', VALID['GOOGLE_WEB_CLIENT_ID'], {})), \
+                patch.object(deploy.subprocess, 'run'), \
+                patch.object(deploy, 'firebase', side_effect=RuntimeError('rules rejected')) as cli:
+            self.assertEqual(deploy.main(), 1)
+            self.assertEqual(cli.call_count, 1)
+            self.assertEqual(cli.call_args.args[0][2], 'firestore:rules')
+
+    def test_rules_are_published_before_hosting(self):
+        with patch('sys.argv', ['deploy-hosting.py', '--deploy']), \
+                patch.object(deploy, 'preflight', return_value=('paylog-test-project', VALID['GOOGLE_WEB_CLIENT_ID'], {})), \
+                patch.object(deploy.subprocess, 'run'), \
+                patch.object(deploy, 'firebase') as cli:
+            self.assertEqual(deploy.main(), 0)
+            self.assertEqual([call.args[0][2] for call in cli.call_args_list], ['firestore:rules', 'hosting'])
+
+
 if __name__ == '__main__':
     unittest.main()

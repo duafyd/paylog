@@ -13,6 +13,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Install pinned Flutter
         run: |
           git clone --filter=blob:none --branch 3.47.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
@@ -42,6 +46,18 @@ jobs:
           MOCK_PID=$!
           node scripts/google-connection-smoke.cjs
           node scripts/sheets-ledger-smoke.cjs
+      - name: Firebase rules and shared-ledger integration (local emulators only)
+        run: |
+          npm ci --prefix scripts/firestore-tests
+          export NODE_PATH="$PWD/scripts/firestore-tests/node_modules:$RUNNER_TEMP/browser-tools/node_modules"
+          export CHROMIUM_PATH="$(command -v google-chrome)"
+          cd apps/web
+          flutter build web --release --no-web-resources-cdn --dart-define=PAYLOG_USE_EMULATORS=true --output=build/firebase-emulator
+          cd ../..
+          python3 -m http.server 8097 --bind 127.0.0.1 --directory apps/web/build/firebase-emulator > /tmp/firebase-web.log 2>&1 &
+          EMULATOR_WEB_PID=$!
+          trap 'kill "$EMULATOR_WEB_PID" 2>/dev/null || true' EXIT
+          npx --yes firebase-tools@14.22.0 emulators:exec --only auth,firestore --project demo-paylog 'node --test scripts/tests/firestore-rules.test.cjs && node scripts/household-emulator-smoke.cjs'
       - uses: actions/upload-artifact@v4
         with:
           name: paylog-web

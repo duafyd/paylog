@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function authenticated() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'password'
+        && request.auth.token.email.matches('^[a-z][a-z0-9_]{3,19}@accounts[.]paylog[.]invalid$');
+    }
+    function profile(uid) { return /databases/$(database)/documents/profiles/$(uid); }
+    function home(hid) { return /databases/$(database)/documents/households/$(hid); }
+    function person(hid, uid) { return /databases/$(database)/documents/households/$(hid)/members/$(uid); }
+    function invitation(hash) { return /databases/$(database)/documents/invites/$(hash); }
+    function member(hid) { return authenticated() && exists(person(hid, request.auth.uid)); }
+    function username(name) {
+      return name is string && name.matches('^[a-z][a-z0-9_]{3,19}$')
+        && name + '@accounts.paylog.invalid' == request.auth.token.email;
+    }
+    function validInvite(hash, hid) {
+      let invite = get(invitation(hash)).data;
+      return hash.matches('^[a-f0-9]{64}$') && invite.householdId == hid
+        && invite.expiresAt > request.time;
+    }
+    match /profiles/{uid} {
+      allow get: if authenticated() && request.auth.uid == uid;
+      allow list, update, delete: if false;
+      allow create: if authenticated() && uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['householdId', 'username', 'createdAt'])
+        && username(request.resource.data.username)
+        && request.resource.data.createdAt == request.time
+        && getAfter(person(request.resource.data.householdId, uid)).data.uid == uid;
+    }
+    match /households/{hid} {
+      allow get: if member(hid);
+      allow list, update, delete: if false;
+      allow create: if authenticated()
+        && request.resource.data.keys().hasOnly(['name', 'ownerId', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && !exists(profile(request.auth.uid))
+        && getAfter(profile(request.auth.uid)).data.householdId == hid
+        && getAfter(person(hid, request.auth.uid)).data.role == 'owner';
+      match /members/{uid} {
+        allow get: if member(hid);
+        allow list: if member(hid) && request.query.limit != null && request.query.limit <= 50;
+        allow update, delete: if false;
+        allow create: if authenticated() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['uid', 'username', 'role', 'inviteHash', 'createdAt'])
+          && request.resource.data.uid == uid && username(request.resource.data.username)
+          && request.resource.data.createdAt == request.time
+          && !exists(profile(uid)) && getAfter(profile(uid)).data.householdId == hid
+          && (
+            (request.resource.data.role == 'owner' && request.resource.data.inviteHash == ''
+              && !exists(home(hid)) && getAfter(home(hid)).data.ownerId == uid)
+            ||
+            (request.resource.data.role == 'member' && exists(home(hid))
+              && validInvite(request.resource.data.inviteHash, hid))
+          );
+      }
+      match /transactions/{tid} {
+        allow get: if member(hid);
+        allow list: if member(hid) && request.query.limit != null && request.query.limit <= 500;
+        allow delete: if false;
+        function valid() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['type','amount','occurredAt','merchant','memo','categoryId','memberId','memberName','paymentMethod','version','createdBy','updatedBy','createdAt','updatedAt','deletedAt'])
+            && d.type in ['income','expense'] && d.amount is int && d.amount > 0 && d.amount <= 999999999999
+            && d.occurredAt is timestamp && d.merchant is string && d.merchant.size() > 0 && d.merchant.size() <= 120
+            && d.memo is string && d.memo.size() <= 500
+            && ((d.type == 'income' && d.categoryId in ['salary','bonus']) || (d.type == 'expense' && d.categoryId in ['food','groceries','cafe','transport','shopping','health','leisure','other']))
+            && d.paymentMethod in ['카드','현금','계좌이체']
+            && exists(person(hid,d.memberId)) && d.memberName == get(person(hid,d.memberId)).data.username
+            && d.version is int && d.updatedBy == request.auth.uid && d.updatedAt == request.time
+            && (d.deletedAt == null || d.deletedAt == request.time);
+        }
+        allow create: if member(hid) && valid() && request.resource.data.version == 1
+          && request.resource.data.createdBy == request.auth.uid && request.resource.data.createdAt == request.time
+          && request.resource.data.deletedAt == null;
+        allow update: if member(hid) && valid() && resource.data.deletedAt == null
+          && request.resource.data.version == resource.data.version + 1
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+    }
+    match /invites/{hash} {
+      // A strong random code is needed to find this document; listing is denied.
+      // All current members may invite others; there is no member-count ceiling.
+      allow get: if authenticated();
+      allow list, update: if false;
+      allow create: if authenticated() && hash.matches('^[a-f0-9]{64}$')
+        && request.resource.data.keys().hasOnly(['householdId','createdBy','createdAt','expiresAt'])
+        && member(request.resource.data.householdId)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(25,'h');
+      allow delete: if authenticated() && (
+        resource.data.createdBy == request.auth.uid
+        || get(home(resource.data.householdId)).data.ownerId == request.auth.uid);
+    }
+  }
+}

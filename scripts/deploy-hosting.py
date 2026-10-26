@@ -105,6 +105,7 @@ def main():
             return 0
         subprocess.run(['flutter', 'pub', 'get', '--enforce-lockfile'], cwd=ROOT / 'apps/web', env=env, check=True)
         subprocess.run(['flutter', 'build', 'web', '--release', '--no-web-resources-cdn', '--dart-define=GOOGLE_WEB_CLIENT_ID=' + client], cwd=ROOT / 'apps/web', env=env, check=True)
+        firebase(['deploy', '--only', 'firestore:rules', '--project', project, '--config', str(ROOT / 'firebase.json')], env, live=True)
         firebase(['deploy', '--only', 'hosting', '--project', project, '--config', str(ROOT / 'firebase.json')], env)
         print('Hosting 배포 완료: https://' + project + '.web.app')
         print('실제 OAuth 로그인·공유 ACL·GAS 동작 검증은 배포 완료와 별도로 수행해야 합니다.')

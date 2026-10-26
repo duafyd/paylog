@@ -22,7 +22,7 @@ class SettingsScreen extends ConsumerWidget {
               style: TextStyle(color: AppColors.muted)),
           const SizedBox(height: 24),
           const LedgerStatus(),
-          if (ref.watch(transactionRepositoryProvider).sheetId == null) ...[
+          if (ref.watch(transactionRepositoryProvider).isDemo) ...[
             const BentoCard(
               color: AppColors.accentSoft,
               child: Column(
@@ -58,9 +58,9 @@ class SettingsScreen extends ConsumerWidget {
             const Divider(height: 24),
             _SettingsAction(
                 icon: Icons.people_outline_rounded,
-                title: '가족과 가계부 관리',
-                subtitle: '멤버 · 카드 · 카테고리 · 기기 · 검토함',
-                onTap: () => context.go('/management')),
+                title: '공동 가계부 관리',
+                subtitle: '가계부 만들기 · 초대 코드 · 멤버',
+                onTap: () => context.go('/household')),
           ])),
           const SizedBox(height: 16),
           BentoCard(

@@ -33,13 +33,17 @@ class FirebaseAuthGateway implements AuthPort {
     try {
       if (!kIsWeb) throw const AuthFailure('unsupported-platform');
       final app = Firebase.apps.isEmpty
-          ? await Firebase.initializeApp(options: paylogFirebaseWebOptions)
+          ? await Firebase.initializeApp(options: activeFirebaseOptions)
           : Firebase.app();
-      if (app.options.projectId != paylogFirebaseWebOptions.projectId ||
-          app.options.appId != paylogFirebaseWebOptions.appId) {
+      if (app.options.projectId != activeFirebaseOptions.projectId ||
+          app.options.appId != activeFirebaseOptions.appId) {
         throw const AuthFailure('wrong-project');
       }
       _auth = FirebaseAuth.instanceFor(app: app);
+      if (useFirebaseEmulators) {
+        await _auth!
+            .useAuthEmulator('127.0.0.1', 9099, automaticHostMapping: false);
+      }
       // Keep refresh across this tab's lifetime without permanent login storage.
       await _auth!.setPersistence(Persistence.SESSION);
       return _auth!;
