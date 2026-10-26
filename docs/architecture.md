@@ -1,3 +1,5 @@
+> **확정된 다음 아키텍처 (2026-10-26):** 기존 Firebase 프로젝트의 Spark 요금제에서 Firebase Auth + Firestore로 전환한다. 부부 두 계정의 공동 원장과 iPhone/Android 웹앱을 지원한다. [전환 결정 및 구현 순서](FIREBASE_MIGRATION.md)를 따른다. 아래 내용은 현재 Sheets 구현에 대한 기록이며 아직 전환 완료 상태가 아니다.
+
 # 현재 아키텍처
 
 브라우저 Flutter/Riverpod는 사용자 Google OAuth 토큰을 메모리에 보관하고 Sheets API를 직접 호출한다. GAS는 별도 SMS 수집 전용이다. 계정 변경 시 원장 캐시를 화면에서 제거한다. 두 경로 모두 RAW 쓰기와 UUID 참조를 사용한다.
