@@ -1,3 +1,20 @@
+> **확정된 다음 아키텍처 (2026-10-26):** 기존 Firebase 프로젝트의 Spark 요금제에서 Firebase Auth + Firestore로 전환한다. 부부 두 계정의 공동 원장과 iPhone/Android 웹앱을 지원한다. [전환 결정 및 구현 순서](FIREBASE_MIGRATION.md)를 따른다. 아래 내용은 현재 Sheets 구현에 대한 기록이며 아직 전환 완료 상태가 아니다.
+
+# 현재 아키텍처
+
+브라우저 Flutter/Riverpod는 사용자 Google OAuth 토큰을 메모리에 보관하고 Sheets API를 직접 호출한다. GAS는 별도 SMS 수집 전용이다. 계정 변경 시 원장 캐시를 화면에서 제거한다. 두 경로 모두 RAW 쓰기와 UUID 참조를 사용한다.
+
+- 웹: 달력·통계·등록·상세·수정·소프트 삭제·CSV. 행 해시로 변경 전 충돌을 확인하고 불명확한 쓰기는 GET만 재확인한다. 최종 읽기/쓰기 경쟁은 남는다.
+- 관리: Members 가족 참여, 소유자의 Members/Cards/Categories/Devices/Review 변경. Sheets 공유 ACL이 실제 접근 경계이며 앱 역할은 서버 보안 경계가 아니다.
+- SMS: `services/sms/src`의 순수 파서/수집 코어와 `gas/adapter.js`를 합쳐 배포용 `Code.gs` 생성. 기기 토큰 해시, 카드 매핑, 중복 키, 취소 마커 복구와 최소 검토 후보를 저장한다. 기기 수집자와 지출 카드 소유자를 구분한다.
+- Android: `apps/sms_android` Kotlin receiver → Keystore 암호화 큐 → WorkManager → 소유자의 GAS. 기기 토큰은 로컬 암호화 설정에만 보관하고 WorkManager에는 큐 ID만 전달한다.
+- iOS: `ios/`의 수동 설정 가이드·JSON 구성도. 실제 제공되는 필드만 사용하고 messageId가 없으면 자동 승인하지 않는다. 서명된 `.shortcut`은 미제공이다.
+- 배포: Firebase Hosting SPA/보안·캐시 헤더. CI는 웹/서버/Android를 검증한다. 금융 데이터 오프라인 저장·자동 동기화는 제공하지 않는다.
+
+실제 Google 계정/공유 ACL/GAS 배포 검증은 사용자 설정이 없어 미실행이다. 실기기 검증은 이번 요청에서 제외했다. 최신 결과는 [검증 보고서](validation.md)를 따른다. 이하 절은 이전 단계 설계 기록이다.
+
+---
+
 # Phase 1 아키텍처와 개발 경계
 
 ## 이번 작업의 범위

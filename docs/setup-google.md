@@ -88,3 +88,31 @@ NODE_PATH=/tmp/paylog-browser-tools/node_modules CHROMIUM_PATH=/usr/bin/chromium
 ## 6. 원장 연동 단계 추가
 
 별도의 **달력에 실제 원장 연결** 패널에서 새 Transactions·Members 템플릿을 만들거나 지원 스키마의 시트를 연결할 수 있다. 연결 후 달력·등록·통계가 해당 원장으로 전환된다. 기본 샘플과 거래를 합치지 않는다. 실제 Google 계정 검증 미실행 상태는 여전히 유효하며 세부 제약은 [원장 가이드](sheets-ledger.md)를 따른다.
+
+## 브랜딩의 앱 도메인·공개 문서
+
+최신 웹을 배포한 뒤 아래 주소를 로그인하지 않은 브라우저에서 확인하고 Google Auth Platform → 브랜딩에 입력한다.
+
+| 항목 | 주소 |
+|---|---|
+| 애플리케이션 홈페이지 | `https://paylog-c5c2d.web.app` |
+| 애플리케이션 개인정보처리방침 링크 | `https://paylog-c5c2d.web.app/privacy.html` |
+| 애플리케이션 서비스 약관 링크 | `https://paylog-c5c2d.web.app/terms.html` |
+
+두 문서는 Flutter 실행·Google 로그인 없이 열리는 HTML이다. 앱 설정과 초기 HTML에도 링크가 있다. 개인정보 문의처는 운영자가 지정한 `duafyd@gmail.com`이며, GitHub Issues는 일반 오류 문의용으로 구분한다. 비밀번호·인증 코드·기기 토큰은 이메일로도 보내지 않도록 안내한다. 문서는 실제 데이터 처리 방식·운영 정보가 변경될 때 함께 관리해야 한다.
+
+Cloud Shell의 저장소 루트에서 `git pull --ff-only && bash scripts/deploy-cloud-shell.sh`로 웹만 재배포한다. 페이지 생성·배포가 Google OAuth 검증 승인이나 게시 상태 변경을 자동으로 수행하지는 않는다. 홈페이지 도메인 소유권, 개발자 연락처, 요청 범위와 검증 항목은 Google Console의 실제 요구사항을 따른다.
+
+
+### Search Console 추가 확인 태그
+
+홈페이지 `<head>`에 HTML 인증 메타태그와 GA4 `G-9FWZ8L9KE5`의 Google 태그를 포함한다. 소유권 확인을 위한 설치이며 `ga-disable-G-9FWZ8L9KE5=true`를 gtag 로드 전에 설정해 분석 이벤트 수집을 비활성화한다. 자동 페이지뷰·Google signals·광고 개인화도 끈다. 외부 스크립트 다운로드 요청은 발생할 수 있으므로 개인정보처리방침에 이를 고지한다. 분석을 활성화하려면 별도 데이터 처리 검토가 필요하다.
+
+소유자가 웹 배포 후 같은 Google 계정의 Search Console → 소유권 인증 → Google 애널리틱스 → 확인을 실행한다. 해당 GA 속성의 수정 권한이 필요하다. 코드 설치 검증은 실제 Search Console 승인이나 OAuth 브랜딩 오류 해소를 보장하지 않는다. 기존 HTML 파일/메타태그 인증은 유지한다.
+
+
+### Google 태그 관리자 추가 확인
+
+컨테이너 `GTM-KQQ9XCLC`의 제공된 스니펫을 홈페이지 `<head>`에 삽입하고 `<body>` 바로 뒤에 noscript iframe을 둔다. GA4 수집 비활성화 설정은 GTM 로드보다 먼저 유지한다. 앱은 GTM dataLayer에 거래·문자·계정·토큰 정보를 추가하지 않는다. 컨테이너에 분석/광고 태그를 새로 게시하는 작업은 이 변경에 포함하지 않는다.
+
+소유자는 웹 배포 후 같은 Google 계정으로 Search Console → 소유권 인증 → Google 태그 관리자 → 확인을 실행한다. 해당 컨테이너에 게시 권한이 필요하며, 웹 소스 변경과 GTM 작업공간 게시는 서로 다른 작업이다. 스니펫 설치는 Search Console 인증 또는 OAuth 브랜딩 통과를 보장하지 않는다. Google이 별도 게시 상태 문제를 표시하면 그 오류를 확인하고 대응한다.

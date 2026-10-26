@@ -11,7 +11,8 @@ import '../google_connection/google_oauth.dart';
 import '../google_connection/google_connection.dart';
 
 class TransactionForm extends ConsumerStatefulWidget {
-  const TransactionForm({super.key});
+  const TransactionForm({super.key, this.initial});
+  final BudgetTransaction? initial;
   @override
   ConsumerState<TransactionForm> createState() => _TransactionFormState();
 }
@@ -45,6 +46,17 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
     final now = ref.read(clockProvider)();
     _date = DateTime(
         selected.year, selected.month, selected.day, now.hour, now.minute);
+    final t = widget.initial;
+    if (t != null) {
+      _amount.text = t.amount.toString();
+      _merchant.text = t.merchant;
+      _memo.text = t.memo;
+      _type = t.type;
+      _category = t.categoryId;
+      _member = t.memberId.isEmpty ? t.member : t.memberId;
+      _payment = t.paymentMethod;
+      _date = t.occurredAt;
+    }
   }
 
   @override
@@ -86,7 +98,8 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
     messenger.clearSnackBars();
     final person = repository.ledgerMembers.firstWhere((m) => m.id == _member);
     _pending ??= BudgetTransaction(
-        id: _draftId,
+        id: widget.initial?.id ?? _draftId,
+        revision: widget.initial?.revision ?? '',
         type: _type,
         amount: int.parse(_amount.text),
         occurredAt: _date,
@@ -101,7 +114,12 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
       _saveError = null;
     });
     try {
-      await ref.read(transactionsProvider.notifier).add(_pending!);
+      final controller = ref.read(transactionsProvider.notifier);
+      if (widget.initial == null) {
+        await controller.add(_pending!);
+      } else {
+        await controller.update(_pending!);
+      }
       if (!mounted ||
           !identical(repository, ref.read(transactionRepositoryProvider))) {
         return;
@@ -147,7 +165,8 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('새로운 기록', style: Theme.of(context).textTheme.headlineSmall),
+          Text(widget.initial == null ? '새로운 기록' : '기록 수정',
+              style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 6),
           const Text('오늘의 소비도, 반가운 수입도.',
               style: TextStyle(color: AppColors.muted)),
@@ -175,8 +194,9 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                   ? null
                   : (values) => setState(() {
                         _type = values.first;
-                        _category =
-                            categories.firstWhere((c) => c.type == _type).id;
+                        _category = _boundRepository.categoryCatalog
+                            .firstWhere((c) => c.type == _type && c.enabled)
+                            .id;
                       })),
           const SizedBox(height: 20),
           BentoCard(
@@ -281,8 +301,10 @@ class _TransactionFormState extends ConsumerState<TransactionForm> {
                     builder: (context, constraints) => Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: categories
-                            .where((c) => c.type == _type)
+                        children: _boundRepository.categoryCatalog
+                            .where((c) =>
+                                c.type == _type &&
+                                (c.enabled || c.id == _category))
                             .map((c) => SizedBox(
                                   width: (constraints.maxWidth - 16) / 3,
                                   child: CategoryTile(
@@ -347,7 +369,7 @@ class CategoryTile extends StatelessWidget {
         selected: selected,
         button: true,
         child: Material(
-            color: selected ? AppColors.tealSoft : AppColors.background,
+            color: selected ? AppColors.accentSoft : AppColors.background,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
                 onTap: onTap,
@@ -357,12 +379,13 @@ class CategoryTile extends StatelessWidget {
                         const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
                     child: Column(children: [
                       Icon(category.icon,
-                          color: selected ? AppColors.teal : AppColors.muted),
+                          color: selected ? AppColors.accent : AppColors.muted),
                       const SizedBox(height: 8),
                       Text(category.label,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: selected ? AppColors.teal : AppColors.ink,
+                              color:
+                                  selected ? AppColors.accent : AppColors.ink,
                               fontSize: 12))
                     ])))),
       );

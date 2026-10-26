@@ -5,8 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import '../features/calendar/calendar_screen.dart';
 import '../features/transactions/transaction_form.dart';
+import '../features/transactions/transaction_detail.dart';
+import '../features/ledger/management_screen.dart';
 import '../features/statistics/statistics_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/help/usage_guide_screen.dart';
 import '../features/google_connection/google_connection_screen.dart';
 import '../features/transactions/transaction_repository.dart';
 
@@ -16,6 +19,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state, child) =>
           AppShell(path: state.uri.path, child: child),
       routes: [
+        GoRoute(
+            path: '/transaction/:id',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => TransactionDetail(
+                    key: ObjectKey(ref.watch(transactionRepositoryProvider)),
+                    id: state.pathParameters['id']!))),
+        GoRoute(
+            path: '/edit/:id',
+            builder: (context, state) => Consumer(builder: (context, ref, _) {
+                  final found = ref
+                      .read(transactionsProvider)
+                      .where((t) => t.id == state.pathParameters['id']);
+                  return found.isEmpty
+                      ? const Center(child: Text('거래를 찾을 수 없어요.'))
+                      : TransactionForm(
+                          key: ObjectKey(
+                              ref.watch(transactionRepositoryProvider)),
+                          initial: found.first);
+                })),
         GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
         GoRoute(
             path: '/statistics',
@@ -28,6 +50,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         GoRoute(
             path: '/google-connection',
             builder: (context, state) => const GoogleConnectionScreen()),
+        GoRoute(
+            path: '/management',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => ManagementScreen(
+                    key: ObjectKey(ref.watch(transactionRepositoryProvider))))),
+        GoRoute(
+            path: '/help',
+            builder: (context, state) => const UsageGuideScreen()),
         GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen()),
@@ -66,16 +96,16 @@ class AppShell extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 1120),
               child: Column(children: [
                 Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 12),
                     child: Row(children: [
                       Container(
                           width: 34,
                           height: 34,
                           decoration: BoxDecoration(
-                              color: AppColors.teal,
+                              color: AppColors.dark,
                               borderRadius: BorderRadius.circular(11)),
                           child: const Icon(Icons.grid_view_rounded,
-                              color: Colors.white, size: 21)),
+                              color: AppColors.highlight, size: 21)),
                       const SizedBox(width: 10),
                       const Expanded(
                           child: FittedBox(
@@ -83,7 +113,7 @@ class AppShell extends ConsumerWidget {
                               alignment: Alignment.centerLeft,
                               child: Text('paylog',
                                   style: TextStyle(
-                                      fontSize: 24,
+                                      fontSize: 23,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: -1)))),
                       const SizedBox(width: 12),
@@ -91,7 +121,7 @@ class AppShell extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
-                              color: AppColors.tealSoft,
+                              color: AppColors.accentSoft,
                               borderRadius: BorderRadius.circular(20)),
                           child: Text(
                               ref
@@ -101,31 +131,53 @@ class AppShell extends ConsumerWidget {
                                   ? '샘플 가계부'
                                   : 'Sheets 원장',
                               style: const TextStyle(
-                                  color: AppColors.teal,
+                                  color: AppColors.accent,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600))),
                     ])),
                 Expanded(child: child),
               ]),
             ))),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: path == '/google-connection'
-              ? 3
-              : paths.indexOf(path).clamp(0, 3),
-          onDestinationSelected: (index) => context.go(paths[index]),
-          destinations: const [
-            NavigationDestination(
-                icon: Icon(Icons.calendar_today_outlined),
-                selectedIcon: Icon(Icons.calendar_today),
-                label: '달력'),
-            NavigationDestination(
-                icon: Icon(Icons.donut_large_outlined), label: '통계'),
-            NavigationDestination(
-                icon: Icon(Icons.add_circle_outline),
-                selectedIcon: Icon(Icons.add_circle),
-                label: '등록'),
-            NavigationDestination(icon: Icon(Icons.tune), label: '설정'),
-          ],
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                      decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(26),
+                          border: Border.all(color: AppColors.border)),
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.circular(26),
+                          child: NavigationBar(
+                            selectedIndex: const [
+                              '/google-connection',
+                              '/help',
+                              '/management'
+                            ].contains(path)
+                                ? 3
+                                : paths.indexOf(path).clamp(0, 3),
+                            onDestinationSelected: (index) =>
+                                context.go(paths[index]),
+                            destinations: const [
+                              NavigationDestination(
+                                  icon: Icon(Icons.calendar_today_outlined),
+                                  selectedIcon: Icon(Icons.calendar_today),
+                                  label: '달력'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.donut_large_outlined),
+                                  label: '통계'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.add_circle_outline),
+                                  selectedIcon: Icon(Icons.add_circle),
+                                  label: '등록'),
+                              NavigationDestination(
+                                  icon: Icon(Icons.tune), label: '설정'),
+                            ],
+                          ))))),
         ),
       );
 }

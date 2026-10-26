@@ -1,0 +1,15 @@
+{
+  "description": "Action blueprint; not an Apple-signed .shortcut import file",
+  "endpoint": "REPLACE_WITH_GAS_EXEC_HTTPS_URL",
+  "requestMethod": "POST",
+  "contentType": "application/json",
+  "jsonBody": {
+    "action": "sms.ingest",
+    "deviceId": "REPLACE_WITH_REGISTERED_DEVICE_UUID",
+    "ingestToken": "ENTER_DEVICE_SECRET_LOCALLY",
+    "sender": "USE_ACTUAL_SENDER_IF_AVAILABLE",
+    "receivedAt": "CURRENT_DATE_ISO8601_WITH_TIMEZONE",
+    "body": "SHORTCUT_INPUT_TEXT"
+  },
+  "response": {"requireOk":true,"acceptedCodes":["CREATED","DUPLICATE","IGNORED_CARD","REVIEW_REQUIRED"]}
+}
