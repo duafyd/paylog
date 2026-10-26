@@ -17,6 +17,18 @@ class UploadWorker(context: Context, params: WorkerParameters) : Worker(context,
             if (System.currentTimeMillis() - payload.optLong("queuedAt") > TimeUnit.DAYS.toMillis(7)) {
                 store.delete(id); status("7일 보관기한 만료 · 수동 등록 필요"); return Result.failure()
             }
+            if (config.optString("backend") == "firestore") {
+                if (!FirestoreCapture.eligible(payload.optString("body"))) {
+                    store.delete(id); status("결제 문자 형식이 아니어서 전송하지 않음"); return Result.success()
+                }
+                try {
+                    FirestoreCapture.upload(config,payload) { store.write("config",it) }
+                    store.delete(id); status("Firestore 수집함 전송 확인 · 웹에서 자동 반영/검토"); return Result.success()
+                } catch (error: FirestoreCapture.Failure) {
+                    status(if (error.permanent) "기기 연결 차단/설정 오류 · 웹에서 확인" else "Firestore 전송 대기 · 네트워크 재시도")
+                    return if (error.permanent) Result.failure() else Result.retry()
+                }
+            }
             val endpoint = config.optString("endpoint")
             if (!Endpoint.valid(endpoint)) { status("GAS 주소 설정 필요"); return Result.failure() }
             payload.remove("queuedAt")

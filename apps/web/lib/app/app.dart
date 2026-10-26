@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/sign_in_screen.dart';
+import '../features/sms/sms_session.dart';
+import '../features/sms/sms_screen.dart';
 import '../features/household/household_screen.dart';
 import '../features/household/household_session.dart';
 import '../features/calendar/calendar_screen.dart';
@@ -41,6 +43,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                               ref.watch(transactionRepositoryProvider)),
                           initial: found.first);
                 })),
+        GoRoute(
+            path: '/sms-devices',
+            builder: (context, state) => Consumer(
+                builder: (context, ref, _) => SmsScreen(
+                    key: ObjectKey(ref.watch(smsSessionProvider).service)))),
         GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
         GoRoute(
             path: '/household',
@@ -82,6 +89,7 @@ class PaylogApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(householdSessionProvider);
+    ref.watch(smsSessionProvider);
     return MaterialApp.router(
       title: 'paylog · 우리 집의 작은 기록',
       debugShowCheckedModeBanner: false,
@@ -165,6 +173,7 @@ class AppShell extends ConsumerWidget {
                             selectedIndex: const [
                               '/sign-in',
                               '/household',
+                              '/sms-devices',
                               '/google-connection',
                               '/help',
                               '/management'

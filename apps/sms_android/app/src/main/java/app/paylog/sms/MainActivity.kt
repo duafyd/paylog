@@ -54,7 +54,7 @@ class MainActivity : Activity() {
         val store = SecureStore(this)
         runCatching {
             val config = store.config()
-            check(Endpoint.valid(config.optString("endpoint")) && config.optString("token").length >= 32)
+            check(FirestoreCapture.valid(config) || (Endpoint.valid(config.optString("endpoint")) && config.optString("token").length >= 32))
             store.write("config", config.put("enabled", true))
         }.onSuccess { toast("문자 자동 수집을 시작했어요"); recreate() }
             .onFailure { toast("연결 파일을 먼저 선택해 주세요") }
@@ -72,8 +72,8 @@ class MainActivity : Activity() {
         }
         label("paylog 문자 자동 기록")
         label(if (config.optBoolean("enabled") && checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED)
-            "자동 수집 켜짐 · 등록된 카드사의 새 문자만 처리해요" else "연결 파일을 선택하고 문자 권한을 허용하면 준비가 끝나요")
-        label("웹 가계부 → 관리 → 기기 → Android 간편 연결에서 파일을 저장하세요. 휴대폰마다 별도 파일이 필요해요.")
+            "자동 수집 켜짐 · 등록한 발신자의 새 문자만 처리해요" else "연결 파일을 선택하고 문자 권한을 허용하면 준비가 끝나요")
+        label("웹 가계부 → 설정 → 문자 자동 기록 · 기기 연결에서 Android 연결 파일을 만드세요. 기존 Sheets 연결 파일도 계속 사용할 수 있어요.")
         button("웹 가계부 열기") {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://paylog-c5c2d.web.app"))) }
                 .onFailure { toast("브라우저에서 paylog-c5c2d.web.app을 열어 주세요") }
@@ -84,7 +84,7 @@ class MainActivity : Activity() {
             }, 20) }.onFailure { toast("파일 앱을 열 수 없어요") }
         }
         button("2. 문자 권한 허용하고 시작") {
-            if (!Endpoint.valid(config.optString("endpoint")) || config.optString("token").length < 32) {
+            if (!FirestoreCapture.valid(config) && (!Endpoint.valid(config.optString("endpoint")) || config.optString("token").length < 32)) {
                 toast("연결 파일을 먼저 선택해 주세요")
             } else requestPermissions(arrayOf(Manifest.permission.RECEIVE_SMS), 1)
         }

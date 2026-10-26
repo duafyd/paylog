@@ -47,6 +47,9 @@ class FirestoreStatus extends ConsumerWidget {
             TextButton(
                 onPressed: () => context.go('/household'),
                 child: const Text('초대 · 멤버 관리')),
+            TextButton(
+                onPressed: () => context.go('/sms-devices'),
+                child: const Text('문자 수집함 · 기기 연결')),
             if (repository.hasMore)
               TextButton(
                   onPressed: () => run(repository.more),

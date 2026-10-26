@@ -33,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
                     SectionHeader('지금은 샘플 모드예요'),
                     SizedBox(height: 8),
                     Text(
-                        '가상 거래로 먼저 둘러보세요. 실제 기록을 보관하려면 Google 계정과 우리 집 원장을 연결해 주세요.'),
+                        '가상 거래로 먼저 둘러보세요. 실제 기록을 보관하려면 아이디로 로그인하고 공동 가계부를 연결해 주세요.'),
                     SizedBox(height: 8),
                     Text('샘플 기록은 새로고침하면 초기화됩니다.',
                         style: TextStyle(fontSize: 12, color: AppColors.muted)),
@@ -56,6 +56,15 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: '이전 방식 · 기존 Sheets 원장 연결',
                 onTap: () => context.go('/google-connection')),
             const Divider(height: 24),
+            if (ref.watch(transactionRepositoryProvider).householdId !=
+                null) ...[
+              _SettingsAction(
+                  icon: Icons.sms_outlined,
+                  title: '문자 자동 기록 · 기기 연결',
+                  subtitle: 'Firestore 수집함 · 휴대폰 연결 파일',
+                  onTap: () => context.go('/sms-devices')),
+              const Divider(height: 24),
+            ],
             _SettingsAction(
                 icon: Icons.people_outline_rounded,
                 title: '공동 가계부 관리',

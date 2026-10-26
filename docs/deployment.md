@@ -1,4 +1,4 @@
-> 새 아이디·비밀번호/Firestore 공동 가계부 배포는 [Firebase 전환 설정](FIREBASE_MIGRATION.md)을 먼저 따른다. 소유자가 Email/Password를 켜고 기본 Firestore를 프로덕션 모드로 생성해야 한다. `deploy-cloud-shell.sh`는 이제 Firestore 보안 규칙을 먼저 배포한 후 Hosting을 게시한다. 원본 Sheets/SMS 자동 이전은 포함하지 않는다.
+> 새 아이디·비밀번호/Firestore 공동 가계부 배포는 [Firebase 전환 설정](FIREBASE_MIGRATION.md)을 먼저 따른다. 소유자가 Email/Password를 켜고 기본 Firestore를 프로덕션 모드로 생성해야 한다. `deploy-cloud-shell.sh`는 이제 Firestore 보안 규칙을 먼저 배포한 후 Hosting을 게시한다. 원본 Sheets/SMS 자동 이전은 포함하지 않는다. 새 문자 수집은 [Firestore 문자 안내](firestore-sms.md)에 따라 웹/규칙과 Android 1.1.0을 함께 배포한다.
 
 # 배포와 CI
 
@@ -50,12 +50,12 @@ Codex의 환경 설정 화면에 접근하기 어렵다면 사용자 Google Clou
 
 ```sh
 paylog_deploy_dir=$(mktemp -d)
-git clone --depth 1 --branch feat/complete-budget-workflows https://github.com/duafyd/paylog.git "$paylog_deploy_dir/paylog"
+git clone --depth 1 --branch feat/firestore-sms-ingestion https://github.com/duafyd/paylog.git "$paylog_deploy_dir/paylog"
 cd "$paylog_deploy_dir/paylog"
 bash scripts/deploy-cloud-shell.sh
 ```
 
-스크립트는 사용자에게 받은 공개 프로젝트/OAuth ID를 기본값으로 사용하고 Flutter 3.47.7의 커밋을 검증한 뒤 릴리스 빌드를 만든다. SDK가 없으면 임시 도구 디렉터리에 설치한다. `firebase login --no-localhost`의 로그인 링크를 열고 요구하는 코드는 **Cloud Shell 터미널에** 입력한다. 배포 대상 프로젝트 접근을 확인한 뒤 Hosting만 배포하고 공개 HTTP 응답을 확인한다. 토큰을 채팅으로 보내거나 별도 Codex 환경 변수에 등록할 필요가 없다. Google OAuth 승인 원본과 Sheets API 활성화는 Google 콘솔에서 별도로 확인한다.
+스크립트는 사용자에게 받은 공개 프로젝트/OAuth ID를 기본값으로 사용하고 Flutter 3.47.7의 커밋을 검증한 뒤 릴리스 빌드를 만든다. SDK가 없으면 임시 도구 디렉터리에 설치한다. `firebase login --no-localhost`의 로그인 링크를 열고 요구하는 코드는 **Cloud Shell 터미널에** 입력한다. 배포 대상 프로젝트 접근을 확인한 뒤 Firestore 보안 규칙과 Hosting을 차례로 배포하고 공개 HTTP 응답을 확인한다. 토큰을 채팅으로 보내거나 별도 Codex 환경 변수에 등록할 필요가 없다. Google OAuth 승인 원본과 Sheets API 활성화는 Google 콘솔에서 별도로 확인한다.
 
 기본값을 바꾸려면 FIREBASE_PROJECT_ID와 GOOGLE_WEB_CLIENT_ID를 명시적으로 설정한다. `--prepare-only`는 인증/배포 없이 SDK·의존성·실제 OAuth ID의 릴리스 빌드까지만 검증한다. 실제 Cloud Shell 인증/배포는 사용자의 로그인 없이는 이 개발환경에서 대신 검증할 수 없다.
 

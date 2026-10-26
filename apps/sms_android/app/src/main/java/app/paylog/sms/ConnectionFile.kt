@@ -7,7 +7,16 @@ object ConnectionFile {
     fun parse(text: String): JSONObject {
         require(text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES)
         val value = JSONObject(text)
-        require(value.getString("format") == "paylog-android-connection" && value.getInt("version") == 1)
+        require(value.getString("format") == "paylog-android-connection")
+        if (value.getInt("version") == 2) {
+            require(FirestoreCapture.valid(value))
+            val senders = value.getString("senders").split(',').map { it.trim() }.distinct()
+            require(senders.size in 1..10 && senders.all { it.matches(Regex("\\+?[0-9]{3,20}")) })
+            val config = JSONObject()
+            for (key in listOf("backend", "projectId", "apiKey", "householdId", "deviceId", "email", "password", "platform")) config.put(key, value.getString(key))
+            return config.put("senders",senders.joinToString(",")).put("enabled",false)
+        }
+        require(value.getInt("version") == 1)
         val endpoint = value.getString("endpoint")
         val device = value.getString("deviceId")
         val token = value.getString("token")

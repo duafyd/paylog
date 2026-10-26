@@ -3,7 +3,7 @@ android {
     namespace = "app.paylog.sms"
     compileSdk = 36
     buildToolsVersion = "36.0.0"
-    defaultConfig { applicationId = "app.paylog.sms"; minSdk = 26; targetSdk = 36; versionCode = 4; versionName = "1.0.2" }
+    defaultConfig { applicationId = "app.paylog.sms"; minSdk = 26; targetSdk = 36; versionCode = 5; versionName = "1.1.0" }
     signingConfigs {
         val path = providers.environmentVariable("PAYLOG_RELEASE_STORE_FILE").orNull
         if (path != null) {
