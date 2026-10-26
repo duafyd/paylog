@@ -34,6 +34,7 @@ jobs:
           WEB_PID=$!
           trap 'kill "$WEB_PID" "${MOCK_PID:-}" 2>/dev/null || true' EXIT
           node scripts/browser-smoke.cjs
+          PAYLOG_BASE_URL=http://127.0.0.1:8080 node scripts/firebase-auth-smoke.cjs
           cd apps/web
           flutter build web --release --no-web-resources-cdn --dart-define=GOOGLE_WEB_CLIENT_ID=browser-test.apps.googleusercontent.com --output=build/google-poc
           cd ../..

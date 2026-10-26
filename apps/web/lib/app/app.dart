@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
+import '../features/auth/sign_in_screen.dart';
 import '../features/calendar/calendar_screen.dart';
 import '../features/transactions/transaction_form.dart';
 import '../features/transactions/transaction_detail.dart';
@@ -39,6 +40,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                           initial: found.first);
                 })),
         GoRoute(path: '/', builder: (context, state) => const CalendarScreen()),
+        GoRoute(
+            path: '/sign-in',
+            builder: (context, state) => const SignInScreen()),
         GoRoute(
             path: '/statistics',
             builder: (context, state) => const StatisticsScreen()),
@@ -154,6 +158,7 @@ class AppShell extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(26),
                           child: NavigationBar(
                             selectedIndex: const [
+                              '/sign-in',
                               '/google-connection',
                               '/help',
                               '/management'

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../transactions/transaction_repository.dart';
 import '../export/ledger_export.dart';
 import '../export/download.dart';
+import '../auth/auth_session.dart';
 import '../ledger/ledger_widgets.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/platform/open_public_page.dart';
@@ -43,9 +44,16 @@ class SettingsScreen extends ConsumerWidget {
           BentoCard(
               child: Column(children: [
             _SettingsAction(
+                icon: Icons.account_circle_outlined,
+                title: '로그인 및 계정',
+                subtitle: ref.watch(firebaseSessionProvider).user?.email ??
+                    'Google 계정으로 시작',
+                onTap: () => context.go('/sign-in')),
+            const Divider(height: 24),
+            _SettingsAction(
                 icon: Icons.link_rounded,
                 title: 'Google 연결 검증 열기',
-                subtitle: '로그인하고 우리 집 원장 연결',
+                subtitle: '이전 방식 · 기존 Sheets 원장 연결',
                 onTap: () => context.go('/google-connection')),
             const Divider(height: 24),
             _SettingsAction(

@@ -214,3 +214,14 @@ Google SDK 및 API를 Playwright로 대체했으므로 이 결과는 실제 OAut
 - 파일에는 평문 자격 증명이 포함되므로 앱 가져오기 후 삭제한다. URL 링크나 클립보드로 키를 전달하지 않는다. 파일 검증은 서버 접속 성공을 의미하지 않는다. 가족별 GAS 최초 설정과 카드 등록은 여전히 소유자가 준비해야 한다.
 - Flutter 정적 분석, 전체 테스트 66개, 웹 release 빌드 통과. Android debug/release JVM 테스트 각 8개, lint 및 release 빌드 통과. 배포 스크립트 Python 테스트 22개 통과.
 - 이 환경의 release APK는 운영 서명이 없는 빌드 검증용이다. 운영 서명·Firebase/GitHub 릴리스 게시에는 소유자 Cloud Shell의 `bash scripts/release-family.sh`가 필요하다. 실제 문서 선택기·SMS 수신·GAS 연동은 실기기 검증 범위로 남아 있다.
+
+
+## Firebase Auth 웹 연결 1단계 (2026-10-26)
+
+- 브랜치 `feat/firebase-auth-migration`: FlutterFire core/auth와 공개 웹 설정으로 `/sign-in`을 추가했다. Google 팝업 기본 프로필 인증만 요청한다. 설정과 홈페이지에서 진입하고, 기존 Sheets 연결은 이전 방식으로 표시한다.
+- 준비·취소·차단·미승인 도메인·로그아웃 실패·스트림 오류·시간 초과·중복 요청·늦은 응답을 처리한다. Firebase UID 경계에서 이전 원장/샘플 캐시를 정리하며 Auth SDK의 SESSION 지속성을 사용한다. 토큰을 UI 모델이나 로그에 넣지 않는다.
+- 홈페이지 기능 설명과 정책 링크를 초기 HTML 및 실제 Flutter 달력에 제공한다. 정책 링크는 앱 첫 프레임 후에도 Flutter UI에 남는다. 개인정보처리방침에 Firebase 계정·세션 저장·삭제 요청 절차를 반영했다.
+- `scripts/check.sh`: 포맷·정적 분석·전체 Flutter 테스트 **77개**·release 웹 빌드 통과. Python 배포 테스트 **22개** 통과.
+- Chromium: 실제 공식 FlutterFire JS SDK를 사용하되 Auth REST는 명시적으로 모의해 SDK 초기화·상태 전달·세션 새로고침·로그아웃·Sheets 요청 없음·JS 오류 없음을 확인했다. 테스트 계정을 실제 Firebase에 생성하지 않는다. 기존 샘플 거래 CRUD·통계·세션 초기화 브라우저 검사도 통과했다.
+- 실 Google 로그인/동의, 운영 API 키·승인 도메인·제공업체 설정, iPhone/Samsung 팝업은 별도 검증 대상이다. 환경 네트워크에서 운영 Auth 구성 조회가 차단돼 직접 확인하지 못했다. 모의 브라우저 검증을 실 Google 로그인 성공으로 간주하지 않는다.
+- Firestore 저장·보안 규칙·부부 초대·문자 수집 경로 전환은 아직 미구현이며 이번 변경은 운영 배포 전이다.

@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paylog/app/app.dart';
+import 'package:paylog/features/auth/auth_port.dart';
+import 'package:paylog/features/auth/auth_session.dart';
 import 'package:paylog/features/transactions/transaction.dart';
 import 'package:paylog/features/transactions/transaction_repository.dart';
 
 Future<ProviderContainer> mount(WidgetTester tester,
     {double width = 390,
     double scale = 1,
-    TransactionRepository? repository}) async {
+    TransactionRepository? repository,
+    AuthPort? auth}) async {
   tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1;
   tester.platformDispatcher.textScaleFactorTestValue = scale;
@@ -16,6 +19,7 @@ Future<ProviderContainer> mount(WidgetTester tester,
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   final container = ProviderContainer(overrides: [
+    if (auth != null) firebaseAuthPortProvider.overrideWithValue(auth),
     if (repository != null)
       activeRepositoryProvider.overrideWith((ref) => repository),
     clockProvider.overrideWithValue(() => DateTime(2026, 10, 20, 12))
