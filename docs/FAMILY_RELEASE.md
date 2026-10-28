@@ -1,3 +1,9 @@
+# 현재 배포 기준 (2026-10-28)
+
+공유 Google Sheets + GAS, Android 1.3.0/code7을 사용한다. [최신 초기 설정·배포 절차](SHARED_SHEETS.md)를 먼저 따른다. Cloudflare 인증과 Firestore는 필요하지 않으며 기존 데이터는 자동 이전/삭제하지 않는다. 아래 공개 상태 표는 과거 배포 기록이고 이번 코드의 실제 배포 완료를 뜻하지 않는다.
+
+---
+
 # 가족용 정식 배포
 
 대상은 가족이 각자의 Google 계정으로 같은 원장을 사용하는 웹앱과 Android APK 직접 배포다. Google Play/App Store 출시나 불특정 다수 공개 서비스는 이 범위에 포함하지 않는다.

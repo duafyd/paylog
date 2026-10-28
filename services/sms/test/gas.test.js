@@ -54,3 +54,23 @@ test('GAS recovers response loss during transaction and cancellation append',()=
  assert.equal(f.tables.Transactions[1][11],'approved');assert.equal(f.post(cancel).code,'DUPLICATE');
  assert.equal(f.tables.Transactions[1][11],'cancelled');assert.equal(f.tables.Transactions.length,3);
 });
+test('zero web sessions: Android and iPhone approvals persist directly; cross-device duplicate is reviewed',()=>{
+ const f=gas();
+ assert.equal(f.post(f.input).code,'CREATED');
+ const token='local-test-ios-token-with-at-least-32-characters';
+ f.tables.Devices.push(['iphone','home','member','ios',createHash('sha256').update(token).digest('hex'),true,'','']);
+ const ios={...f.input,deviceId:'iphone',ingestToken:token,messageId:'ios-execution-one'};
+ assert.equal(f.post(ios).code,'REVIEW_REQUIRED');
+ assert.equal(f.tables.Transactions.length,2);
+ assert.equal(f.tables.Review[1][4],'POSSIBLE_DUPLICATE');
+ const second={...ios,messageId:'ios-execution-two',body:ios.body.replace('8,800원','9,900원')};
+ assert.equal(f.post(second).code,'CREATED');
+ assert.equal(f.tables.Transactions.length,3);
+ assert.equal(f.tables.Transactions[2][10],'ios_shortcut');
+ assert.equal(f.post(second).code,'DUPLICATE');
+ assert.equal(f.tables.Transactions.length,3);
+ // Deleting a row must not make an old retry a new expense.
+ f.tables.Transactions[2][17]=new Date().toISOString();
+ assert.equal(f.post(second).code,'DUPLICATE');
+ assert.equal(f.tables.Transactions.length,3);
+});

@@ -113,8 +113,11 @@ class LedgerManagement {
 
   /// Creates a per-phone credential. Only its digest is written to Sheets.
   /// An uncertain append is never automatically retried or exported.
-  Future<String> createAndroidConnection(
-      String endpoint, String memberId) async {
+  Future<String> createPhoneConnection(String endpoint, String memberId,
+      {String platform = 'android'}) async {
+    if (!['android', 'ios'].contains(platform)) {
+      throw const ConnectionFailure('지원하지 않는 기기 종류예요.');
+    }
     endpoint = endpoint.trim();
     if (!RegExp(r'^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$')
         .hasMatch(endpoint)) {
@@ -150,7 +153,7 @@ class LedgerManagement {
       id,
       _household,
       memberId,
-      'android',
+      platform,
       sha256.convert(utf8.encode(token)).toString(),
       'true',
       '',
@@ -178,7 +181,9 @@ class LedgerManagement {
           '기기 등록 결과를 확인하지 못했어요. 기기 목록에서 $id 항목이 있으면 비활성화한 뒤 다시 만들어 주세요.');
     }
     return jsonEncode({
-      'format': 'paylog-android-connection',
+      'format': platform == 'android'
+          ? 'paylog-android-connection'
+          : 'paylog-ios-connection',
       'version': 1,
       'endpoint': endpoint,
       'deviceId': id,

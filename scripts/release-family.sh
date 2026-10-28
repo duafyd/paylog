@@ -15,7 +15,9 @@ if ! gh auth status --hostname github.com >/dev/null 2>&1; then
   echo '먼저 실행하세요: gh auth login --hostname github.com --git-protocol https --web' >&2
   exit 1
 fi
+node services/sms/build.mjs
 bash scripts/deploy-cloud-shell.sh
 python3 scripts/release-android.py
 python3 scripts/verify-release.py --web-build apps/web/build/web
+printf '\n중요: 문자 수집 GAS는 Apps Script에서 새 Code.gs 버전으로 별도 갱신하세요.\n'
 printf '\n가족용 웹·APK 배포와 공개 파일 확인 완료. 가족 계정·SMS 수신은 운영 가이드에 따라 확인하세요.\n'

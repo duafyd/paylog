@@ -28,3 +28,8 @@ firebase-debug*.log
 
 # Per-phone connection exports contain bearer credentials
 paylog-connection*.json
+
+# Retired receiver configuration and local emulator output
+.paylog-sms-receiver.json
+.wrangler/
+firestore-debug.log

@@ -1,5 +1,6 @@
 package app.paylog.sms
 import android.content.Context
+import android.os.Build
 import androidx.work.*
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -65,9 +66,11 @@ class UploadWorker(context: Context, params: WorkerParameters) : Worker(context,
     private fun status(value: String) { applicationContext.getSharedPreferences("status",0).edit().putString("last",value).apply() }
     companion object {
         fun schedule(context: Context, id: String) {
-            val work = OneTimeWorkRequestBuilder<UploadWorker>().setInputData(workDataOf("queueId" to id))
+            val builder = OneTimeWorkRequestBuilder<UploadWorker>().setInputData(workDataOf("queueId" to id))
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL,30,TimeUnit.SECONDS).build()
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL,30,TimeUnit.SECONDS)
+            if (Build.VERSION.SDK_INT >= 31) builder.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            val work = builder.build()
             WorkManager.getInstance(context).enqueueUniqueWork("sms-$id", ExistingWorkPolicy.KEEP,work)
         }
     }

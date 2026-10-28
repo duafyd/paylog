@@ -1,3 +1,13 @@
+# 현재 공유 Sheets 릴리스: 1.3.0 / code 7
+
+Android 새 SMS → 암호화 대기열 → 소유자 GAS → 공유 Google Sheets로 직접 기록한다. Firestore·Cloudflare·웹 실행이 필요하지 않다. 웹 관리 → 기기 → Android 간편 연결로 생성한 GAS용 v1 파일을 사용한다. 기존 Firestore용 파일은 새 GAS 파일로 교체해야 한다. WorkManager에 신속 실행을 요청하지만 OS/네트워크 상황에 따라 지연될 수 있다. 다른 앱 알림은 읽지 않는다.
+
+[현재 가족 설정·배포](../../docs/SHARED_SHEETS.md). 기존 정식 서명키를 유지한다. Play 프로텍트의 SMS 권한 APK 차단 정책은 별도이며 이 업데이트로 해소된다고 보장하지 않는다.
+
+이하 이전 검증 기록의 버전 번호는 당시 기준이다.
+
+---
+
 # Android SMS 보조 앱
 
 Galaxy S25 / Android 16을 대상으로 한 Kotlin 앱이다. 새 SMS 수신 → 실제 허용 발신자 선필터 → multipart 본문 결합 → Android Keystore AES/GCM 암호화 대기열 → WorkManager 네트워크 재시도를 구현했다. READ_SMS는 요청하지 않는다. 원문/토큰을 로그에 출력하지 않으며 설정 토큰·큐는 noBackupFilesDir에 암호화 저장한다. WorkManager에는 큐 ID만 전달한다. 클라우드 백업·기기 이전을 제외하고 설정 화면 캡처도 차단한다.

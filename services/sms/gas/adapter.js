@@ -56,6 +56,9 @@ function makeStore() {
     },
     cards(household) { return get('Cards').rows.filter(c => c.householdId === household && get('Members').rows.some(m => m.id === c.memberId && m.householdId === household && enabled(m.active))).map(c => ({...c, enabled:enabled(c.enabled), senderAllowlist:String(c.senderAllowlist).split(',').map(s => s.trim()).filter(Boolean)})); },
     message(key) { return get('Messages').rows.find(m => m.id === key); },
+    approvalExists(household, fingerprint) {
+      return get('Transactions').rows.some(t => t.householdId === household && t.fingerprint === fingerprint && t.type === 'expense');
+    },
     transaction(id) { return get('Transactions').rows.find(t => t.id === id); },
     reviewExists(key) { return get('Review').rows.some(r => r.key === key); },
     receipt(key, bodyHash, deviceId, code, now) {

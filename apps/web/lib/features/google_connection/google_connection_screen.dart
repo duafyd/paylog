@@ -66,7 +66,7 @@ class _GoogleConnectionScreenState
       const BentoCard(
           color: AppColors.accentSoft,
           child: Text(
-              '접근 확인 PoC는 가계부와 별개로 동작해요. 아래에서 실제 원장을 연결하면 달력·등록·통계가 Sheets 모드로 전환됩니다. 샘플 거래는 복사하지 않습니다.')),
+              '각자 Google 계정으로 로그인한 뒤 같은 시트를 연결해요. 한 사람이 가계부를 만들고 Google Sheets 공유 메뉴에서 가족에게 편집 권한을 주세요. 별도 회원가입이나 초대 코드는 필요하지 않아요.')),
       const SizedBox(height: 16),
       if (!connection.configured)
         const BentoCard(
@@ -125,11 +125,13 @@ class _GoogleConnectionScreenState
                       : 'Sheets 권한 요청')),
             ])),
         const SizedBox(height: 16),
+        const LedgerConnectionPanel(),
+        const SizedBox(height: 16),
         BentoCard(
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              const SectionHeader('3. 접근 확인'),
+              const SectionHeader('선택 · 시트 접근 진단'),
               const SizedBox(height: 12),
               Semantics(
                   container: true,
@@ -215,8 +217,6 @@ class _GoogleConnectionScreenState
                   const Text('테스트 시트는 확인 후 Google Drive에서 직접 삭제해 주세요.',
                       style: TextStyle(fontSize: 12, color: AppColors.muted)),
                 ]))),
-      const SizedBox(height: 16),
-      const LedgerConnectionPanel(),
     ]);
   }
 }

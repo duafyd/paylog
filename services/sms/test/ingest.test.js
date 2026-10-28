@@ -12,7 +12,7 @@ function fixture() {
   const rows=[], receipts=new Map(), reviews=[];
   const card = {id:'card',enabled:true,memberId:'member',maskedIdentifier:'하나3*8*',senderAllowlist:['test-sender']};
   const device = {id:'device',enabled:true,householdId:'home',memberId:'member',platform:'android',tokenHash:crypto.hash(token)};
-  const store = {device:()=>device,allowRate:()=>true,cards:()=>[card],message:k=>receipts.get(k),transaction:id=>rows.find(t=>t.id===id),reviewExists:k=>reviews.some(r=>r.key===k),receipt:(k,bodyHash)=>receipts.set(k,{bodyHash}),review:r=>reviews.push(r),category:()=> 'food',append:r=>rows.push(r),originals:()=>rows.filter(t=>t.status==='approved'),cancel:(r,id)=>{r.status='cancelled';rows.push({...r,id,originalTransactionId:r.id});}};
+  const store = {approvalExists:(h,f)=>rows.some(t=>t.householdId===h && t.fingerprint===f),device:()=>device,allowRate:()=>true,cards:()=>[card],message:k=>receipts.get(k),transaction:id=>rows.find(t=>t.id===id),reviewExists:k=>reviews.some(r=>r.key===k),receipt:(k,bodyHash)=>receipts.set(k,{bodyHash}),review:r=>reviews.push(r),category:()=> 'food',append:r=>rows.push(r),originals:()=>rows.filter(t=>t.status==='approved'),cancel:(r,id)=>{r.status='cancelled';rows.push({...r,id,originalTransactionId:r.id});}};
   const input = {action:'sms.ingest',deviceId:'device',ingestToken:token,messageId:'sms-1',sender:'test-sender',receivedAt:'2026-10-12T18:31:30+09:00',body:general};
   return {store,input,rows,reviews,card,device};
 }
@@ -28,13 +28,16 @@ test('year boundary and impossible/ambiguous dates',()=>{
   assert.equal(parseHana(general,'2026-04-01T00:00:00+09:00'),null);
   assert.equal(parseHana('승인 하나3*8* 누적123,456원','2026-10-12T00:00:00+09:00'),null);
 });
-test('same message id deduplicates; separate same-value payments remain separate',()=>{
+test('same source deduplicates; new same-minute source is reviewed; next-minute payment is separate',()=>{
   const f=fixture(); assert.equal(ingest(f.input,f.store,crypto,now).code,'CREATED');
   assert.equal(ingest(f.input,f.store,crypto,now).code,'DUPLICATE');
   // A repeated OS broadcast may be queued at a new time but keeps source identity.
   assert.equal(ingest({...f.input,receivedAt:'2026-10-12T18:31:55+09:00'},f.store,crypto,now).code,'DUPLICATE');
   assert.equal(f.rows.length,1);
-  assert.equal(ingest({...f.input,messageId:'sms-2'},f.store,crypto,now).code,'CREATED');
+  assert.equal(ingest({...f.input,messageId:'sms-2'},f.store,crypto,now).code,'REVIEW_REQUIRED');
+  assert.equal(f.rows.length,1);
+  assert.equal(f.reviews[0].reason,'POSSIBLE_DUPLICATE');
+  assert.equal(ingest({...f.input,messageId:'sms-3',body:general.replace('18:31','18:32')},f.store,crypto,now).code,'CREATED');
   assert.equal(f.rows.length,2); assert.equal(JSON.stringify(f.rows).includes(f.input.body),false);
 });
 test('unknown sender/card ignored; masking collision reviewed',()=>{

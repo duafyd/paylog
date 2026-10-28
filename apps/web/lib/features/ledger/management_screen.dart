@@ -142,7 +142,8 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
     // cannot repeat an uncertain create request.
   }
 
-  Future<void> _connectAndroid() async {
+  Future<void> _connectPhone(String platform) async {
+    final phone = platform == 'ios' ? 'iPhone' : 'Android';
     final members =
         _service!.repository.ledgerMembers.where((m) => m.active).toList();
     if (members.isEmpty) return;
@@ -151,7 +152,7 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
     final chosen = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-                title: const Text('Android 간편 연결'),
+                title: Text('$phone 간편 연결'),
                 content: SizedBox(
                     width: 420,
                     child: SingleChildScrollView(
@@ -202,8 +203,8 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
       _error = null;
     });
     try {
-      final contents =
-          await _service!.createAndroidConnection(address, memberId);
+      final contents = await _service!
+          .createPhoneConnection(address, memberId, platform: platform);
       if (!mounted ||
           !identical(_bound, ref.read(transactionRepositoryProvider))) {
         return;
@@ -213,8 +214,9 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
           context: context,
           builder: (context) => AlertDialog(
                   title: const Text('연결 파일 준비 완료'),
-                  content: const Text(
-                      '이 휴대폰에 파일을 저장한 뒤 문자 수집 앱에서 “연결 파일 선택”을 누르세요. 연결 후 다운로드한 파일은 삭제해 주세요. 분실하면 기기 목록에서 비활성화하고 새로 만들 수 있어요.'),
+                  content: Text(platform == 'ios'
+                      ? '파일을 저장한 뒤 사용 가이드의 iPhone 단축어에 설정 사전으로 넣으세요. 최초 자동화 설정이 필요해요. 연결 키가 포함되어 있으니 공유하지 마세요.'
+                      : '이 휴대폰에 파일을 저장한 뒤 문자 수집 앱에서 “연결 파일 선택”을 누르세요. 연결 후 다운로드한 파일은 삭제해 주세요. 분실하면 기기 목록에서 비활성화하고 새로 만들 수 있어요.'),
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(context),
@@ -274,9 +276,14 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
             label: const Text('목록 새로고침')),
         if (_table == 'Devices')
           FilledButton.icon(
-              onPressed: _busy ? null : _connectAndroid,
+              onPressed: _busy ? null : () => _connectPhone('android'),
               icon: const Icon(Icons.phone_android),
               label: const Text('Android 간편 연결')),
+        if (_table == 'Devices')
+          FilledButton.icon(
+              onPressed: _busy ? null : () => _connectPhone('ios'),
+              icon: const Icon(Icons.phone_iphone),
+              label: const Text('iPhone 간편 연결')),
         if (['Cards', 'Categories'].contains(_table))
           FilledButton.icon(
               onPressed: _busy ? null : () => _edit(null),

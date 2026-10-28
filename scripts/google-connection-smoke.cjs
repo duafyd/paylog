@@ -58,6 +58,9 @@ const fs = require('node:fs');
     assert.deepEqual(await page.evaluate(()=>globalThis.__oauthScopes),['openid email profile']);
     await page.getByRole('button',{name:'Sheets 권한 요청',exact:true}).click();
     await content('Sheets 권한 다시 동의');
+    // The shared-ledger setup now comes before optional diagnostics. Flutter
+    // materializes accessibility nodes only for visible list children.
+    await scroll(5000);
     await page.getByRole('button',{name:'전용 테스트 시트 생성·쓰기 확인',exact:true}).click();
     await page.getByRole('button',{name:'새 시트 생성·검증',exact:true}).click();
     await page.mouse.move(200,400);await page.mouse.wheel(0,350);await page.waitForTimeout(250);
@@ -72,6 +75,7 @@ const fs = require('node:fs');
     await page.waitForTimeout(250);
     await page.screenshot({path:path.join(screenshotDir,'google-probe.png')});
     const sheetInput=page.getByRole('textbox',{name:/시트 ID 또는 Google Sheets URL/});
+    await scroll(-700);
     await sheetInput.click();
     await page.waitForTimeout(150);
     await sheetInput.fill(sheetId);

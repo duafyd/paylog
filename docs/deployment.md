@@ -1,3 +1,7 @@
+# 공유 Sheets 배포
+
+[최신 통합 설정·데이터 이전 주의사항](SHARED_SHEETS.md). Firebase Spark Hosting만 사용하며 Cloudflare·Firestore 배포는 수행하지 않는다. 웹/APK 배포와 GAS 코드 갱신은 별도다.
+
 # 배포와 CI
 
 Firebase Hosting 설정은 저장소의 `firebase.json`이다. 실제 배포는 프로젝트 ID와 본인 Firebase 로그인/CI 인증이 있어야 한다. 공개 프로젝트·OAuth ID는 확인됐지만 이 개발 환경에는 사용자 Firebase 로그인 계정이 없다. 본인 Cloud Shell에서 배포하며, 최신 공개 상태와 가족용 절차는 [가족용 정식 배포](FAMILY_RELEASE.md)를 따른다. 플랫폼 제공 서비스 계정 자격증명을 사용자 계정 대신 사용하지 않는다.
@@ -48,7 +52,7 @@ Codex의 환경 설정 화면에 접근하기 어렵다면 사용자 Google Clou
 
 ```sh
 paylog_deploy_dir=$(mktemp -d)
-git clone --depth 1 --branch feat/complete-budget-workflows https://github.com/duafyd/paylog.git "$paylog_deploy_dir/paylog"
+git clone --depth 1 --branch feat/shared-google-sheets https://github.com/duafyd/paylog.git "$paylog_deploy_dir/paylog"
 cd "$paylog_deploy_dir/paylog"
 bash scripts/deploy-cloud-shell.sh
 ```

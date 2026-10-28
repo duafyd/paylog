@@ -44,8 +44,12 @@ export function ingest(input, store, crypto, now = Date.now()) {
     store.cancel(originals[0], transactionId, new Date(now).toISOString(), device.id, device.platform === 'android' ? 'android_sms' : 'ios_shortcut');
     return finish('CREATED');
   }
+  const fingerprint = crypto.hash([sender,card.id,parsed.amount,parsed.merchant.trim().replace(/\s+/g,' '),parsed.occurredAt,parsed.status].join('|'));
+  // A new Shortcut execution has a new UUID. Same card/minute/merchant may
+  // also be a real second purchase, so retain it for review rather than drop it.
+  if (store.approvalExists(device.householdId, fingerprint)) return review('POSSIBLE_DUPLICATE');
   const categoryId = store.category(device.householdId, parsed.merchant);
   if (!categoryId) return review('MISSING_CATEGORY');
-  store.append({id:transactionId, householdId:device.householdId, type:'expense', amount:parsed.amount, occurredAt:parsed.occurredAt, merchant:parsed.merchant, memo:'', categoryId, memberId:card.memberId, cardId:card.id, source:device.platform === 'android' ? 'android_sms' : 'ios_shortcut', status:'approved', fingerprint:crypto.hash([sender,card.id,parsed.amount,parsed.merchant.trim().replace(/\s+/g,' '),parsed.occurredAt,parsed.status].join('|')), originalTransactionId:'', createdAt:new Date(now).toISOString(), updatedAt:new Date(now).toISOString(), updatedBy:device.id, deletedAt:'', paymentMethod:'카드'});
+  store.append({id:transactionId, householdId:device.householdId, type:'expense', amount:parsed.amount, occurredAt:parsed.occurredAt, merchant:parsed.merchant, memo:'', categoryId, memberId:card.memberId, cardId:card.id, source:device.platform === 'android' ? 'android_sms' : 'ios_shortcut', status:'approved', fingerprint, originalTransactionId:'', createdAt:new Date(now).toISOString(), updatedAt:new Date(now).toISOString(), updatedBy:device.id, deletedAt:'', paymentMethod:'카드'});
   return finish('CREATED');
 }

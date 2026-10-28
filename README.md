@@ -1,8 +1,10 @@
 # paylog
 
-> **개발 방향 확정:** 기존 Firebase 프로젝트를 유지하고, 부부 두 사람이 사용할 Firebase Auth + Firestore(Spark 무료 플랜) 구조로 전환합니다. [전환 결정](docs/FIREBASE_MIGRATION.md). 현재 배포본은 아직 Sheets 기반입니다.
+가족이 각자의 Google 계정으로 같은 Google Sheets 원장을 공유하는 Flutter Web 가계부입니다. 한 사람이 가계부를 만들고 시트를 편집자로 공유하면 다른 가족도 같은 주소로 연결해 참여합니다. 앱에서 참여 인원수를 제한하지 않습니다. 수동 등록·수정·삭제·통계·CSV와 Android/iPhone 문자 자동 기록을 제공합니다.
 
-가족의 일상을 가볍게 기록하는 Flutter Web 가계부. 기본은 샘플 모드이며, Google 로그인·Sheets 동의 후 원장을 연결하면 달력·거래 등록/수정/삭제·통계가 해당 시트를 사용합니다. 소유자 관리 화면, SMS 수집 GAS, Android 보조 앱과 iOS 설정 가이드도 포함합니다. **실제 Google 계정/API·실기기 검증은 아직 수행하지 않았습니다.** 공개 웹 클라이언트 ID를 설정해야 실제 연결을 시험할 수 있습니다.
+**현재 운영 경로는 Google Sheets + 소유자 Google Apps Script(GAS)입니다.** Firebase는 웹/APK 안내 Hosting에만 사용합니다. 별도 Firebase 회원가입·Firestore·Cloudflare 설정은 필요하지 않습니다. 기존 Firestore 데이터는 자동 이전하지 않으며 삭제하지도 않습니다. [처음부터 연결·이전·배포하기](docs/SHARED_SHEETS.md).
+
+Android 1.3.0과 iPhone 최초 단축어 설정 후, 정상 문자 승인은 웹을 닫아도 GAS가 시트에 직접 기록합니다. 같은 원본 재전송은 중복 처리하고 다른 ID의 같은 카드·금액·가맹점·분 결제는 검토합니다. 웹 화면은 원장 새로고침으로 최신 데이터를 읽습니다. 실제 Google 계정·공유 ACL·GAS 및 휴대폰 실수신 검증은 별도로 필요합니다.
 
 - [원본 개발 명세](docs/DEVELOPMENT_SPEC.md)
 - [Google OAuth 설정](docs/setup-google.md) · [Sheets 원장 사용·스키마·재시도 안내](docs/sheets-ledger.md)

@@ -1,3 +1,19 @@
+# 공유 Google Sheets 복귀 검증 (2026-10-28, 한국 시간)
+
+현재 기준은 `feat/shared-google-sheets`, Google Sheets + GAS 및 Android 1.3.0/code7이다. Firestore/Cloudflare 실험은 실행 경로에서 제외했고 이전 작업은 별도 archive 브랜치에 보존했다. 기존 운영 Firestore/Sheets 데이터나 Cloudflare 자원은 수정/삭제하지 않았다.
+
+- Flutter 분석: No issues found. 단위/위젯 67개 통과. iPhone 연결 파일의 플랫폼/발신번호와 원장에는 비밀값 해시만 저장되는 계약 포함.
+- Flutter 웹: 모의 OAuth 설정과 운영 공개 OAuth ID 각각 릴리스 빌드 성공.
+- Chromium: 샘플 CRUD/통계/세션 초기화, GIS 분리 동의/RAW/토큰 미저장/철회, Sheets 생성/연결/멤버 매핑/저장 응답 단절 후 GET 확인/조회 전용/로그아웃 검사가 통과했다. 외부 Google 계정/API는 모의 응답이다.
+- Node SMS/GAS: 13개 통과, 생성 Code.gs 일치 포함. 브라우저 세션 없이 GAS doPost가 Android와 iPhone의 정상 승인을 바로 원장에 저장하고, 정확한 재전송은 중복 처리하며 다른 기기/실행의 같은 지문은 검토하고 삭제 표시된 거래가 재생성되지 않음을 검증했다. Apps Script/Sheets 서비스는 VM의 모의 API로 검증했다.
+- Android: JDK21/API36/Gradle8.13에서 debug/release 단위 테스트 각 8개, lint 및 두 APK 빌드 성공. 이 환경의 릴리스 APK는 unsigned 검사 산출물이며 정식 APK는 본인 Cloud Shell의 기존 키로 서명해야 한다.
+- Python 배포/릴리스 검사 22개 통과. Bash 배포 스크립트 구문 검사 통과. iPhone 레시피와 웹 배포본 JSON 일치.
+- 실제 Google OAuth/가족 공유 ACL, 사용자 GAS 배포/실행 할당량 및 iPhone/Galaxy 자동화·잠금·배터리 상황은 이 개발 환경에서 검증하지 않았다. 실제 배포/실기기 완료로 보고하지 않는다.
+
+웹/APK 배포와 GAS 새 버전 갱신은 [현재 운영 절차](SHARED_SHEETS.md)를 따른다. 아래는 과거 검증 기록이다.
+
+---
+
 # 실제 Hosting 배포 확인 (2026-10-20, 한국 시간)
 
 사용자가 본인 Google Cloud Shell에서 Firebase 인증 및 배포 명령의 성공을 보고했고, 이후 공개 배포 주소 `https://paylog-c5c2d.web.app`를 별도로 확인했다.

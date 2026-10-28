@@ -69,13 +69,32 @@ class ManagementServer extends MutationServer {
 
 void main() {
   test(
+      'iPhone setup scopes the device to iOS and stores only the secret digest',
+      () async {
+    final server = ManagementServer();
+    server.tables['Cards']!.add(
+        ['card', f.household, '카드', '15880000', '1234', f.memberA, true, '']);
+    final setup = jsonDecode(await LedgerManagement(server.repository())
+        .createPhoneConnection(
+            'https://script.google.com/macros/s/test/exec', f.memberA,
+            platform: 'ios'));
+    expect(setup['format'], 'paylog-ios-connection');
+    final saved = server.tables['Devices']![1];
+    expect(saved[3], 'ios');
+    expect(saved[4],
+        sha256.convert(utf8.encode(setup['token'] as String)).toString());
+    expect(saved.contains(setup['token']), isFalse);
+    expect(setup['senders'], '15880000');
+  });
+
+  test(
       'lost device registration response never retries or exports a credential',
       () async {
     final server = ManagementServer()..loseDeviceAppendResponse = true;
     server.tables['Cards']!.add(
         ['card', f.household, '카드', '15880000', '1234', f.memberA, true, '']);
     await expectLater(
-        LedgerManagement(server.repository()).createAndroidConnection(
+        LedgerManagement(server.repository()).createPhoneConnection(
             'https://script.google.com/macros/s/test/exec', f.memberA),
         throwsA(isA<ConnectionFailure>()));
     expect(server.posts, 1);
@@ -96,7 +115,7 @@ void main() {
       ''
     ]);
     final service = LedgerManagement(server.repository());
-    final connection = jsonDecode(await service.createAndroidConnection(
+    final connection = jsonDecode(await service.createPhoneConnection(
         'https://script.google.com/macros/s/test/exec', f.memberA));
     expect(connection['senders'], '15880000');
     expect(connection['token'], matches(RegExp(r'^[0-9a-f]{64}$')));
@@ -105,7 +124,7 @@ void main() {
     expect(
         saved[4], sha256.convert(utf8.encode(connection['token'])).toString());
     expect(jsonEncode(server.tables).contains(connection['token']), false);
-    final other = jsonDecode(await service.createAndroidConnection(
+    final other = jsonDecode(await service.createPhoneConnection(
         'https://script.google.com/macros/s/test/exec', f.memberA));
     expect(other['deviceId'], isNot(connection['deviceId']));
     expect(other['token'], isNot(connection['token']));
@@ -116,15 +135,15 @@ void main() {
     final server = ManagementServer();
     final service = LedgerManagement(server.repository());
     await expectLater(
-        service.createAndroidConnection('https://evil.example/exec', f.memberA),
+        service.createPhoneConnection('https://evil.example/exec', f.memberA),
         throwsA(isA<ConnectionFailure>()));
     await expectLater(
-        service.createAndroidConnection(
+        service.createPhoneConnection(
             'https://script.google.com/macros/s/test/exec', f.memberA),
         throwsA(isA<ConnectionFailure>()));
     await expectLater(
         LedgerManagement(server.repository(subject: 'new-subject'))
-            .createAndroidConnection(
+            .createPhoneConnection(
                 'https://script.google.com/macros/s/test/exec', f.memberA),
         throwsA(isA<ConnectionFailure>()));
     expect(server.posts, 0);

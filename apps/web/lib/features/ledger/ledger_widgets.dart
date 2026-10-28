@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/platform/open_public_page.dart';
 import '../../core/widgets/bento_card.dart';
 import '../google_connection/google_connection.dart';
 import '../transactions/transaction_repository.dart';
@@ -140,6 +141,11 @@ class _LedgerConnectionPanelState extends ConsumerState<LedgerConnectionPanel> {
         ],
         SelectableText(
             'https://docs.google.com/spreadsheets/d/${repository.sheetId}/edit'),
+        OutlinedButton.icon(
+            onPressed: () => openPublicPage(
+                'https://docs.google.com/spreadsheets/d/${repository.sheetId}/edit'),
+            icon: const Icon(Icons.open_in_new),
+            label: const Text('시트 열기 · 가족 공유')),
         TextButton(
             onPressed: status.busy
                 ? null
